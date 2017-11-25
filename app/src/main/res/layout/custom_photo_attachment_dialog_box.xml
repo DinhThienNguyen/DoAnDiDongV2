@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/white"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/btnChoosePath"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/from_gallery"
+        android:drawableStart="@drawable/android_gallery_icon"
+        android:paddingStart="100dp"
+        android:paddingEnd="110dp"
+        />
+
+    <Button
+        android:id="@+id/btnTakePhoto"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/btnChoosePath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/capture_image"
+        android:drawableStart="@drawable/camera_android_icon"
+        android:paddingStart="100dp"
+        android:paddingEnd="120dp"/>
+
+    <Button
+        android:id="@+id/btnExit"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/btnTakePhoto"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Huỷ"/>
+</RelativeLayout>

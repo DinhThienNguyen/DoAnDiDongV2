@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">DoAnDiDongV2</string>
+    <string name="from_gallery">Từ thư viện</string>
+    <string name="capture_image">Chụp ảnh</string>
+    <string name="exit_dialog">Huỷ</string>
+    <string-array name="event_items">
+        <item>Chọn 1 đính kèm</item>
+        <item>Số điện thoại</item>
+        <item>Hình ảnh</item>
+        <item>Trang web</item>
+    </string-array>
+    <string name="action_save">Lưu</string>
+    <string name="title_activity_date_detail">Sự kiện trong ngày</string>
+    <string name="title_activity_add_date_event">Thêm sự kiện mới</string>
+</resources>

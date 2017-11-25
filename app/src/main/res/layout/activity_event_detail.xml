@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.asus.doandidongv2.EventDetail">
+
+
+    <ImageView
+        android:id="@+id/eventLocationImageView"
+        android:layout_width="match_parent"
+        android:scaleType="centerCrop"
+        android:layout_height="150dp"
+        android:src="@drawable/boner_kun"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:background="@drawable/gradient_bg">
+
+            <TextView
+                android:id="@+id/eventTitleTextView"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginBottom="13dp"
+                android:layout_marginStart="64dp"
+                android:text="Tiêu đề"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/eventDateTimeLinearLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/eventDateTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ngày 25, Tháng 11, năm 2017"
+                    android:layout_marginStart="10dp"
+                    android:drawablePadding="20dp"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:drawableStart="@drawable/eventtime"/>
+
+                <TextView
+                    android:id="@+id/eventTimeTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textColor="@color/black"
+                    android:text="12:30 - 13:00"
+                    android:layout_marginStart="65dp"/>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/eventLocationLinearLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/eventLocationNameTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Bến Thành"
+                    android:layout_marginStart="10dp"
+                    android:drawablePadding="28dp"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:drawableStart="@drawable/eventlocation"/>
+
+                <TextView
+                    android:id="@+id/eventLocationAddressTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="#434343"
+                    android:text="Công trường Quách Thị Trang, Bến Thành Quận 1, Hồ Chí Minh, Việt Nam"
+                    android:layout_marginStart="65dp"/>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/eventDescriptionLinerLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/eventDescriptionTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Mô tả sự kiện"
+                    android:layout_marginStart="10dp"
+                    android:drawablePadding="25dp"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:drawableStart="@drawable/eventdescription"/>
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
