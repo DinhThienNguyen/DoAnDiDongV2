@@ -8,9 +8,17 @@
         android:name="android.hardware.camera"
         android:required="true" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <!--
+         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
+         Google Maps Android API v2, but you must specify either coarse or fine
+         location permissions for the 'MyLocation' functionality. 
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -53,8 +61,9 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBL6AnGloTD1keVx7uvkGLnhmqZKN1rAd8" />
 
-        <activity android:name=".EventDetail"
-            android:theme="@style/AppTheme.NoTitleBar"/>
+        <activity
+            android:name=".EventDetail"
+            android:theme="@style/AppTheme.NoTitleBar" />
     </application>
 
 </manifest>

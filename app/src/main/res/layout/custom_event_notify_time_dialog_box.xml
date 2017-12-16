@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/noNotificationButton"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/no_notification"
+        android:textAllCaps="false"
+        />
+
+    <Button
+        android:id="@+id/tenMinutesBeforeButton"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:layout_below="@id/noNotificationButton"
+        android:textAllCaps="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ten_minutes_before" />
+
+    <Button
+        android:id="@+id/thirtyMinutesBeforeButton"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:textAllCaps="false"
+        android:layout_below="@id/tenMinutesBeforeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/thirty_minutes_before"/>
+
+    <Button
+        android:id="@+id/customNotifyTimeButton"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:textAllCaps="false"
+        android:layout_below="@id/thirtyMinutesBeforeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/custom_notify_time"/>
+
+</RelativeLayout>

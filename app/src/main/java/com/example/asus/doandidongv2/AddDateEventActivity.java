@@ -1,6 +1,7 @@
 package com.example.asus.doandidongv2;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -50,17 +52,21 @@ import com.google.android.gms.tasks.Task;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class AddDateEventActivity extends AppCompatActivity {
 
     //main controls
-    private TextView dateTextView;
+    private TextView dateButton;
     private TextView eventLocationAddressTextView;
     private Button eventStartTimeButton;
     private Button eventEndTimeButton;
+    private Button eventNotifyTimeButton;
     private EditText eventNameEditText;
     private EditText eventLocationEditText;
     private Spinner eventAttachmentSpinner;
@@ -106,12 +112,13 @@ public class AddDateEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_date_event);
 
         //set controls from xml file to controls in java
-        dateTextView = (TextView) findViewById(R.id.dateTextView);
+        dateButton = (Button) findViewById(R.id.dateButton);
         eventLocationAddressTextView = findViewById(R.id.eventLocationAddressTextView);
         eventNameEditText = (EditText) findViewById(R.id.eventNameEditText);
         eventLocationEditText = (EditText) findViewById(R.id.eventLocationEditText);
         eventStartTimeButton = (Button) findViewById(R.id.eventStartTimeButton);
         eventEndTimeButton = (Button) findViewById(R.id.eventEndTimeButton);
+        eventNotifyTimeButton = (Button) findViewById(R.id.eventNotifyTimeButton);
         eventAttachmentSpinner = (Spinner) findViewById(R.id.eventAttachmentSpinner);
         eventAttachmentLinearLayout = (LinearLayout) findViewById(R.id.eventAttachmentLinearLayout);
         hiddenImageView = (ImageView) findViewById(R.id.hiddenImageView);
@@ -120,10 +127,113 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventAttachmentItemLLayoutArray = new ArrayList<LinearLayout>();
         eventAttachmentItemLLayoutHArray = new ArrayList<LinearLayout>();
 
+        final Calendar c = Calendar.getInstance();
         //get the date information from previous activity
         Intent incomingDateFromCalendar = getIntent();
         String date = incomingDateFromCalendar.getStringExtra("Date");
-        dateTextView.setText(date);
+        if(date.equals(""))
+        {
+            // Get Current Date
+
+            mYear = c.get(Calendar.YEAR);
+            mMonth = c.get(Calendar.MONTH) + 1;
+            mDay = c.get(Calendar.DAY_OF_MONTH);
+            dateButton.setVisibility(View.VISIBLE);
+            dateButton.setText(mDay + "/" + mMonth + "/" + mYear);
+        }
+        else
+        {
+            dateButton.setText(date);
+        }
+        dateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                datePicker();
+            }
+        });
+
+        mHour = c.get(Calendar.HOUR_OF_DAY);
+        mMinute = c.get(Calendar.MINUTE);
+        eventStartTimeButton.setText(mHour + ":" + mMinute);
+        mMinute+=30;
+        eventEndTimeButton.setText(mHour + ":" + mMinute);
+
+        eventNotifyTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // nếu đính kèm được chọn là hình ảnh
+                // Hiện dialog cho người dùng chọn lấy ảnh từ đâu
+                final AlertDialog dialog = new AlertDialog.Builder(AddDateEventActivity.this)
+                        .setTitle("Choose one")
+                        .show();
+                dialog.setContentView(R.layout.custom_event_notify_time_dialog_box);
+                Button btnExit = (Button) dialog.findViewById(R.id.btnExit);
+//                btnExit.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        dialog.dismiss();
+//                    }
+//                });
+
+                dialog.findViewById(R.id.noNotificationButton)
+                        .setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                                eventNotifyTimeButton.setText(R.string.no_notification);
+                            }
+                        });
+
+                dialog.findViewById(R.id.tenMinutesBeforeButton)
+                        .setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                                eventNotifyTimeButton.setText(R.string.ten_minutes_before);
+                            }
+                        });
+
+                dialog.findViewById(R.id.thirtyMinutesBeforeButton)
+                        .setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                                eventNotifyTimeButton.setText(R.string.thirty_minutes_before);
+                            }
+                        });
+
+                dialog.findViewById(R.id.customNotifyTimeButton)
+                        .setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                final AlertDialog dialog1 = new AlertDialog.Builder(AddDateEventActivity.this)
+                                        .setTitle("Choose one")
+                                        .show();
+                                dialog1.setContentView(R.layout.custom_2nd_event_notify_time_dialog_box);
+
+                                dialog1.findViewById(R.id.customNotifyTimeConfirmButton)
+                                        .setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                dialog1.dismiss();
+                                                eventNotifyTimeButton.setText("Trước" + dialog1.findViewById(R.id.customNotifyTimeEditText).toString());
+                                            }
+                                        });
+
+                                dialog1.findViewById(R.id.customNotifyTimeDeclineButton)
+                                        .setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                dialog1.dismiss();
+                                            }
+                                        });
+
+                                dialog.dismiss();
+                            }
+                        });
+            }
+        });
 
         hiddenImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,12 +242,21 @@ public class AddDateEventActivity extends AppCompatActivity {
             }
         });
 
+        eventLocationImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri gmmIntentUri = Uri.parse("geo:0, 0?q="+ eventLocationAddressTextView.getText());
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
+            }
+        });
+
         //set the startTime event to eventStartTimeButton
         eventStartTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //show dialog
-                showDialog(1);
+                timePicker(0);
             }
         });
 
@@ -145,8 +264,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventEndTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //show dialog
-                showDialog(2);
+                timePicker(1);
             }
         });
 
@@ -512,7 +630,7 @@ public class AddDateEventActivity extends AppCompatActivity {
     }
 
     /// Hàm dùng để lấy hình ảnh từ thư viện
-    private void retrievePhotos() throws FileNotFoundException {
+    private void retrievePhotos() throws IOException {
         final Bitmap yourSelectedImage = decodeUri(selectedImage);
         addImageAttachment(yourSelectedImage);
     }
@@ -621,52 +739,53 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventLocationImageView.setVisibility(View.VISIBLE);
     }
 
+    int mYear;
+    int mMonth;
+    int mDay;
+    int mHour;
+    int mMinute;
+    private void timePicker(final int whichTime){
+        // Get Current Time
+        final Calendar c = Calendar.getInstance();
+        mHour = c.get(Calendar.HOUR_OF_DAY);
+        mMinute = c.get(Calendar.MINUTE);
 
-    protected Dialog onCreateDialog(int id) {
+        // Launch Time Picker Dialog
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this,
+                new TimePickerDialog.OnTimeSetListener() {
 
-        // Get the calendar
-        Calendar c = Calendar.getInstance();
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay,int minute) {
 
-        // From calendar get the year, month, day, hour, minute
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
-        int hour = c.get(Calendar.HOUR_OF_DAY);
-        int minute = c.get(Calendar.MINUTE);
+                        mHour = hourOfDay;
+                        mMinute = minute;
 
-        switch (id) {
-            case 1:
-
-                // Open the timepicker dialog for eventStartTimeButton
-                return new TimePickerDialog(AddDateEventActivity.this, time_listener, hour,
-                        minute, false);
-
-            case 2:
-                // Open the timepicker dialog for eventEndTimeButton
-                return new TimePickerDialog(AddDateEventActivity.this, time_listener2, hour,
-                        minute, false);
-        }
-        return null;
+                        if(whichTime == 0)
+                            eventStartTimeButton.setText(mHour + ":" + mMinute);
+                        if(whichTime == 1)
+                            eventEndTimeButton.setText(mHour+ ":" + mMinute);
+                    }
+                }, mHour, mMinute, false);
+        timePickerDialog.show();
     }
 
-    TimePickerDialog.OnTimeSetListener time_listener = new TimePickerDialog.OnTimeSetListener() {
+    private void datePicker(){
+            // Get Current Date
+            final Calendar c = Calendar.getInstance();
+            mYear = c.get(Calendar.YEAR);
+            mMonth = c.get(Calendar.MONTH);
+            mDay = c.get(Calendar.DAY_OF_MONTH);
 
-        @Override
-        public void onTimeSet(TimePicker view, int hour, int minute) {
-            // store the data in one string and set it to text
-            String time1 = String.valueOf(hour) + ":" + String.valueOf(minute);
-            eventStartTimeButton.setText(time1);
-        }
-    };
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                    new DatePickerDialog.OnDateSetListener() {
 
-    TimePickerDialog.OnTimeSetListener time_listener2 = new TimePickerDialog.OnTimeSetListener() {
+                        @Override
+                        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                            dateButton.setText(dayOfMonth + "/" + monthOfYear + "/" + year);
+                        }
+                    }, mYear, mMonth, mDay);
+            datePickerDialog.show();
+    }
 
-        @Override
-        public void onTimeSet(TimePicker view, int hour, int minute) {
-            // store the data in one string and set it to text
-            String time1 = String.valueOf(hour) + ":" + String.valueOf(minute);
-            eventEndTimeButton.setText(time1);
-        }
-    };
 }
 

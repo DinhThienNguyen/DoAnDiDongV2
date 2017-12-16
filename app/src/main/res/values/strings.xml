@@ -2,6 +2,11 @@
     <string name="app_name">DoAnDiDongV2</string>
     <string name="from_gallery">Từ thư viện</string>
     <string name="capture_image">Chụp ảnh</string>
+    <string name="no_notification">Không thông báo</string>
+    <string name="ten_minutes_before">Trước 10 phút</string>
+    <string name="thirty_minutes_before">Trước 30 phút</string>
+    <string name="custom_notify_time">Tuỳ chọn</string>
+    <string name="custom_notify_time_txtview">Hiện thông báo trước</string>
     <string name="exit_dialog">Huỷ</string>
     <string-array name="event_items">
         <item>Chọn 1 đính kèm</item>
@@ -12,4 +17,5 @@
     <string name="action_save">Lưu</string>
     <string name="title_activity_date_detail">Sự kiện trong ngày</string>
     <string name="title_activity_add_date_event">Thêm sự kiện mới</string>
+    <string name="title_activity_event_location_ggmap">Map</string>
 </resources>
