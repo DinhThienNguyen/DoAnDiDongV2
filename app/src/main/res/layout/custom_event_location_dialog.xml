@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/eventLocationNameDialogTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:text="Tên địa điểm"
+        />
+
+    <EditText
+        android:id="@+id/eventLocationNameDialogEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor=""
+        android:layout_marginTop="5dp"
+        android:hint="Chợ Bến Thành"/>
+
+    <TextView
+        android:id="@+id/eventLocationAddressDialogTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:text="Địa chỉ của địa điểm"
+        />
+
+    <EditText
+        android:id="@+id/eventLocationAddressDialogEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor=""
+        android:layout_marginTop="5dp"
+        android:hint="Chợ Bến Thành"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp">
+
+        <Button
+            android:id="@+id/eventLocationConfirm"
+            android:background="@color/white"
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_marginStart="170dp"
+            android:text="OK"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/eventLocationDecline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_marginStart="10dp"
+            android:text="Huỷ"/>
+    </LinearLayout>
+</LinearLayout>

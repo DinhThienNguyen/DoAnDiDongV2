@@ -4,11 +4,14 @@ import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.ContactsContract;
@@ -106,10 +109,16 @@ public class AddDateEventActivity extends AppCompatActivity {
     //this counts how many Gallery's have been initialized
     private int spinnerInitializedCount = 0;
 
+    DatabaseHelper db;
+    Context mContext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_date_event);
+
+        db = new DatabaseHelper(getApplicationContext());
+        mContext = getApplicationContext();
 
         //set controls from xml file to controls in java
         dateButton = (Button) findViewById(R.id.dateButton);
@@ -161,20 +170,13 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventNotifyTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // nếu đính kèm được chọn là hình ảnh
-                // Hiện dialog cho người dùng chọn lấy ảnh từ đâu
                 final AlertDialog dialog = new AlertDialog.Builder(AddDateEventActivity.this)
                         .setTitle("Choose one")
                         .show();
                 dialog.setContentView(R.layout.custom_event_notify_time_dialog_box);
                 Button btnExit = (Button) dialog.findViewById(R.id.btnExit);
-//                btnExit.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        dialog.dismiss();
-//                    }
-//                });
 
+                // Không thông báo
                 dialog.findViewById(R.id.noNotificationButton)
                         .setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -184,6 +186,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                             }
                         });
 
+                // Thông báo trước 10 phút
                 dialog.findViewById(R.id.tenMinutesBeforeButton)
                         .setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -193,6 +196,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                             }
                         });
 
+                // Thông báo trước 30 phút
                 dialog.findViewById(R.id.thirtyMinutesBeforeButton)
                         .setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -202,6 +206,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                             }
                         });
 
+                // Thông báo trước số phút do người dùng chọn
                 dialog.findViewById(R.id.customNotifyTimeButton)
                         .setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -217,7 +222,8 @@ public class AddDateEventActivity extends AppCompatActivity {
                                             @Override
                                             public void onClick(View v) {
                                                 dialog1.dismiss();
-                                                eventNotifyTimeButton.setText("Trước" + dialog1.findViewById(R.id.customNotifyTimeEditText).toString());
+                                                EditText temp = (EditText)dialog1.findViewById(R.id.customNotifyTimeEditText);
+                                                eventNotifyTimeButton.setText("Trước " + temp.getText() + " phút");
                                             }
                                         });
 
@@ -241,6 +247,8 @@ public class AddDateEventActivity extends AppCompatActivity {
                 hiddenImageView.setVisibility(View.INVISIBLE);
             }
         });
+//        hiddenImageView.setImageBitmap(db.getReportPicture(6));
+//        hiddenImageView.setVisibility(View.VISIBLE);
 
         eventLocationImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -272,13 +280,20 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventLocationEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    Intent placeAutoCompleteIntent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(AddDateEventActivity.this);
-                    startActivityForResult(placeAutoCompleteIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
+                if(isOnline())
+                {
+                    try {
+                        Intent placeAutoCompleteIntent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(AddDateEventActivity.this);
+                        startActivityForResult(placeAutoCompleteIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+                    } catch (GooglePlayServicesRepairableException e) {
+                        e.printStackTrace();
+                    } catch (GooglePlayServicesNotAvailableException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Không có kết nối internet\nNhập địa chỉ thủ công", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -632,6 +647,7 @@ public class AddDateEventActivity extends AppCompatActivity {
     /// Hàm dùng để lấy hình ảnh từ thư viện
     private void retrievePhotos() throws IOException {
         final Bitmap yourSelectedImage = decodeUri(selectedImage);
+        db.addImageAttachment(yourSelectedImage);
         addImageAttachment(yourSelectedImage);
     }
 
@@ -652,6 +668,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                 selectedImage = FileProvider.getUriForFile(this,
                         "com.example.android.fileprovider1",
                         photoFile);
+                //selectedImage = Uri.fromFile(photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, selectedImage);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
@@ -672,7 +689,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         File image = new File(storageDir, imageFileName);
 
         // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
+        mCurrentPhotoPath = image.toString();
         return image;
     }
 
@@ -785,6 +802,13 @@ public class AddDateEventActivity extends AppCompatActivity {
                         }
                     }, mYear, mMonth, mDay);
             datePickerDialog.show();
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
 }

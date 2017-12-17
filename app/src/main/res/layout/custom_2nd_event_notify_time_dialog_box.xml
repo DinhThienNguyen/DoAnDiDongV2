@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="200dp"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal">
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
     <TextView
     android:id="@+id/customNotifyTimeTextView"
     android:text="@string/custom_notify_time_txtview"
     android:textSize="18sp"
-
+    android:layout_marginStart="20dp"
+    android:layout_marginTop="20dp"
     android:textColor="@color/black"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content" />
@@ -18,6 +18,7 @@
         android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
+        android:inputType="number"
         android:layout_below="@id/customNotifyTimeTextView"/>
 
     <TextView
@@ -34,7 +35,9 @@
         android:id="@+id/customNotifyTimeConfirmButton"
         android:background="@color/white"
         android:text="OK"
+        android:layout_marginStart="150dp"
         android:textSize="18sp"
+        android:layout_marginBottom="10dp"
         android:layout_below="@id/customNotifyTimeEditText"
         android:textColor="@color/colorPrimaryDark"
         android:layout_width="wrap_content"
@@ -45,6 +48,7 @@
         android:background="@color/white"
         android:text="Huỷ"
         android:textSize="18sp"
+        android:layout_marginBottom="10dp"
         android:layout_below="@id/customNotifyTimeEditText"
         android:layout_toEndOf="@id/customNotifyTimeConfirmButton"
         android:textColor="@color/colorPrimaryDark"
