@@ -5,45 +5,30 @@ package com.example.asus.doandidongv2;
  */
 
 public class Event {
-    private int eventId;
-    private String eventName;
-    private String eventDiscript;
+    private int id;
+    private int dayid;
+    private String imageattachmentid;
+    private String phonecontactid;
+    private String title;
+    private String locationname;
+    private String locationaddress;
+    private String starttime;
+    private String endtime;
+    private String description;
+    private int notifytime;
 
-    public Event(){}
-
-    public Event(int eventId, String eventName, String eventDiscript){
-        this.eventId= eventId;
-        this.eventName= eventName;
-        this.eventDiscript= eventDiscript;
+    public Event(int _dayid, String _imageattachmentid, String _phonecontactid, String _title, String _locationname, String _locationaddress, String _starttime, String _endtime, String _description, int _notifytime) {
+        dayid = _dayid;
+        imageattachmentid = _imageattachmentid;
+        phonecontactid = _phonecontactid;
+        title = _title;
+        locationname = _locationname;
+        locationaddress = _locationaddress;
+        starttime = _starttime;
+        endtime = _endtime;
+        description = _description;
+        notifytime = _notifytime;
     }
 
-    public int getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(int eventId) {
-        this.eventId = eventId;
-    }
-
-    public String getEventName() {
-        return eventName;
-    }
-
-    public void setEventName(String eventName) {
-        this.eventName = eventName;
-    }
-
-    public String getEventDiscript() {
-        return eventDiscript;
-    }
-
-    public void setEventDiscript(String eventDiscript) {
-        this.eventDiscript = eventDiscript;
-    }
-
-    @Override
-    public String toString()  {
-        return this.eventName;
-    }
 }
 

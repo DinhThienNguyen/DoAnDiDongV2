@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:textSize="16sp"
+        android:layout_marginStart="10dp"
         android:textColor="@color/black"
         android:text="Tên địa điểm"
         />
@@ -19,9 +20,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor=""
-        android:layout_marginTop="5dp"
-        android:hint="Chợ Bến Thành"/>
+        android:textColor="@color/black"
+        android:layout_marginTop="5dp" />
 
     <TextView
         android:id="@+id/eventLocationAddressDialogTextView"
@@ -29,6 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:textSize="16sp"
+        android:layout_marginStart="10dp"
         android:textColor="@color/black"
         android:text="Địa chỉ của địa điểm"
         />
@@ -38,9 +39,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor=""
-        android:layout_marginTop="5dp"
-        android:hint="Chợ Bến Thành"/>
+        android:textColor="@color/black"
+        android:layout_marginTop="5dp" />
 
     <LinearLayout
         android:orientation="horizontal"

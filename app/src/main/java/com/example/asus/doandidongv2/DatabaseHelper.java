@@ -56,7 +56,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_TITLE = "title";
     private static final String KEY_LOCATION_NAME = "eventlocationname";
     private static final String KEY_LOCATION_ADDRESS = "eventlocationaddress";
-    private static final String KEY_START_TIME= "starttime";
+    private static final String KEY_START_TIME = "starttime";
     private static final String KEY_END_TIME = "endtime";
     private static final String KEY_DESCRIPTION = "description";
     private static final String KEY_NOTIFY_TIME = "notifytime";
@@ -108,12 +108,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+
+    // ImageAttachment Table Methods
+
     /**
      * Updates the current picture for the report.
      *
      * @param picture the picture to save to the internal storage and save path in the database.
      */
-    public long addImageAttachment(Bitmap picture) {
+    public int addImageAttachment(Bitmap picture) {
         SQLiteDatabase db = getWritableDatabase();
 
         // Get the last id in the table
@@ -134,7 +137,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // the name. That way, there will never be two report pictures with the same name.
         String picturePath;
         File internalStorage = mContext.getDir("ImageAttachments", Context.MODE_PRIVATE);
-        File reportFilePath = new File(internalStorage,id + ".jpg");
+        File reportFilePath = new File(internalStorage, id + ".jpg");
         picturePath = reportFilePath.toString();
 
         FileOutputStream fos = null;
@@ -142,8 +145,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             fos = new FileOutputStream(reportFilePath);
             picture.compress(Bitmap.CompressFormat.JPEG, 100 /*quality*/, fos);
             fos.close();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             Log.i("DATABASE", "Problem updating picture", ex);
             picturePath = "";
         }
@@ -155,47 +157,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newPictureValue.put(KEY_ID, id);
         newPictureValue.put(KEY_IMAGE_PATH, picturePath);
 
-        return db.insert(TABLE_IMAGEATTACHMENTS, null, newPictureValue);
+        db.insert(TABLE_IMAGEATTACHMENTS, null, newPictureValue);
+        return id;
     }
 
     /**
      * Gets the picture for the specified report in the database.
      *
      * @param reportId the identifier of the report for which to get the picture.
-     *
      * @return the picture for the report, or null if no picture was found.
      */
-    public Bitmap getReportPicture(long reportId) {
-        String picturePath = getReportPicturePath(reportId);
+    public Bitmap getImageAttachment(long reportId) {
+        String picturePath = getImagePath(reportId);
         if (picturePath == null || picturePath.length() == 0)
             return (null);
 
-        Bitmap reportPicture = BitmapFactory.decodeFile(picturePath);
-
-        return (reportPicture);
+        return BitmapFactory.decodeFile(picturePath);
     }
 
     /**
      * Gets the path of the picture for the specified report in the database.
      *
      * @param reportId the identifier of the report for which to get the picture.
-     *
      * @return the picture for the report, or null if no picture was found.
      */
-    private String getReportPicturePath(long reportId) {
+    private String getImagePath(long reportId) {
         // Gets the database in the current database helper in read-only mode
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT " + KEY_IMAGE_PATH + " FROM " + TABLE_IMAGEATTACHMENTS + " WHERE " + KEY_ID + " = " + reportId;
 
-        // After the query, the cursor points to the first database row
-        // returned by the request
-//        Cursor reportCursor = db.query(TABLE_IMAGEATTACHMENTS,
-//                null,
-//                ReportContract.ReportEntry._ID + "=?",
-//                new String[]{String.valueOf(reportId)},
-//                null,
-//                null,
-//                null);
         Cursor reportCursor = db.rawQuery(sql, null);
         reportCursor.moveToNext();
 
@@ -203,7 +193,94 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // the cursor using the getColumnIndex method of the cursor.
         String picturePath = reportCursor.getString(reportCursor.
                 getColumnIndex(KEY_IMAGE_PATH));
+        reportCursor.close();
 
         return (picturePath);
     }
+
+    /**
+     * Deletes the specified report from the database, removing also the associated picture from the
+     * internal storage if any.
+     *
+     * @param id the report to remove.
+     */
+    public void deleteImageAttachment(int id) {
+        // Remove picture for report from internal storage
+        String picturePath = getImagePath(id); // See above
+        if (picturePath != null && picturePath.length() != 0) {
+            File reportFilePath = new File(picturePath);
+            reportFilePath.delete();
+        }
+
+        // Remove the report from the database
+        SQLiteDatabase db = getWritableDatabase();
+
+        String sql = "SELECT * FROM " + TABLE_IMAGEATTACHMENTS;
+
+        Cursor cursor = db.rawQuery(sql, null);
+        int count = cursor.getCount();
+        Log.d("myTag", "ImageAttachmentTableCount: " + count);
+
+        db.delete(TABLE_IMAGEATTACHMENTS,
+                KEY_ID + "=?",
+                new String[]{String.valueOf(id)});
+
+        cursor = db.rawQuery(sql, null);
+        count = cursor.getCount();
+        Log.d("myTag", "ImageAttachmentTableCount: " + count);
+        cursor.close();
+    }
+
+
+    // PhoneContact Table methods
+
+    public int addPhoneContact(PhoneContact contact) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        // Get the last id in the table
+        String sql = "SELECT " + KEY_ID + " FROM " + TABLE_PHONE_CONTACTS + " ORDER BY " + KEY_ID + " DESC limit 1 ";
+
+        Cursor reportCursor = db.rawQuery(sql, null);
+        reportCursor.moveToNext();
+
+        int id = reportCursor.getInt(reportCursor.
+                getColumnIndex(KEY_ID));
+        id++;
+        reportCursor.close();
+
+        // Add the newly created image attachment into the database
+        ContentValues newContactValue = new ContentValues();
+        newContactValue.put(KEY_ID, id);
+        newContactValue.put(KEY_CONTACT_NAME, contact.getContactName());
+        newContactValue.put(KEY_CONTACT_NUMBER, contact.getContactNumber());
+
+        db.insert(TABLE_PHONE_CONTACTS, null, newContactValue);
+        return id;
+    }
+
+    public PhoneContact getPhoneContact(int id) {
+        // Gets the database in the current database helper in read-only mode
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT *" + " FROM " + TABLE_PHONE_CONTACTS + " WHERE " + KEY_ID + " = " + id;
+        Cursor reportCursor = db.rawQuery(sql, null);
+        reportCursor.moveToNext();
+
+        // Get the path of the picture from the database row pointed by
+        // the cursor using the getColumnIndex method of the cursor.
+        PhoneContact contact = new PhoneContact(
+                reportCursor.getString(reportCursor.getColumnIndex(KEY_CONTACT_NAME)),
+                reportCursor.getString(reportCursor.getColumnIndex(KEY_CONTACT_NUMBER)));
+        reportCursor.close();
+        return contact;
+    }
+
+    public void deletePhoneContact(int id) {
+        // Remove the report from the database
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(TABLE_PHONE_CONTACTS,
+                KEY_ID + "=?",
+                new String[]{String.valueOf(id)});
+    }
+
+
 }

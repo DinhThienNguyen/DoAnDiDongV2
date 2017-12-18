@@ -27,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -98,7 +99,7 @@ public class AddDateEventActivity extends AppCompatActivity {
     GeoDataClient mGeoDataClient;
 
     //this counts how many event attachments there are in this activity
-    private int eventAttachmentCount = 0;
+    private int eventAttachmentCount;
 
     //this counts how many views there are in this activity
     private int totalViewCount = 12;
@@ -119,6 +120,7 @@ public class AddDateEventActivity extends AppCompatActivity {
 
         db = new DatabaseHelper(getApplicationContext());
         mContext = getApplicationContext();
+        eventAttachmentCount = 0;
 
         //set controls from xml file to controls in java
         dateButton = (Button) findViewById(R.id.dateButton);
@@ -139,9 +141,8 @@ public class AddDateEventActivity extends AppCompatActivity {
         final Calendar c = Calendar.getInstance();
         //get the date information from previous activity
         Intent incomingDateFromCalendar = getIntent();
-        String date = incomingDateFromCalendar.getStringExtra("Date");
-        if(date.equals(""))
-        {
+        final String date = incomingDateFromCalendar.getStringExtra("Date");
+        if (date.equals("")) {
             // Get Current Date
 
             mYear = c.get(Calendar.YEAR);
@@ -149,9 +150,7 @@ public class AddDateEventActivity extends AppCompatActivity {
             mDay = c.get(Calendar.DAY_OF_MONTH);
             dateButton.setVisibility(View.VISIBLE);
             dateButton.setText(mDay + "/" + mMonth + "/" + mYear);
-        }
-        else
-        {
+        } else {
             dateButton.setText(date);
         }
         dateButton.setOnClickListener(new View.OnClickListener() {
@@ -164,7 +163,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         mHour = c.get(Calendar.HOUR_OF_DAY);
         mMinute = c.get(Calendar.MINUTE);
         eventStartTimeButton.setText(mHour + ":" + mMinute);
-        mMinute+=30;
+        mMinute += 30;
         eventEndTimeButton.setText(mHour + ":" + mMinute);
 
         eventNotifyTimeButton.setOnClickListener(new View.OnClickListener() {
@@ -174,7 +173,6 @@ public class AddDateEventActivity extends AppCompatActivity {
                         .setTitle("Choose one")
                         .show();
                 dialog.setContentView(R.layout.custom_event_notify_time_dialog_box);
-                Button btnExit = (Button) dialog.findViewById(R.id.btnExit);
 
                 // Không thông báo
                 dialog.findViewById(R.id.noNotificationButton)
@@ -216,13 +214,14 @@ public class AddDateEventActivity extends AppCompatActivity {
                                         .setTitle("Choose one")
                                         .show();
                                 dialog1.setContentView(R.layout.custom_2nd_event_notify_time_dialog_box);
+                                dialog1.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
 
                                 dialog1.findViewById(R.id.customNotifyTimeConfirmButton)
                                         .setOnClickListener(new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
                                                 dialog1.dismiss();
-                                                EditText temp = (EditText)dialog1.findViewById(R.id.customNotifyTimeEditText);
+                                                EditText temp = (EditText) dialog1.findViewById(R.id.customNotifyTimeEditText);
                                                 eventNotifyTimeButton.setText("Trước " + temp.getText() + " phút");
                                             }
                                         });
@@ -253,7 +252,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventLocationImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri gmmIntentUri = Uri.parse("geo:0, 0?q="+ eventLocationAddressTextView.getText());
+                Uri gmmIntentUri = Uri.parse("geo:0, 0?q=" + eventLocationAddressTextView.getText());
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
@@ -280,8 +279,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventLocationEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isOnline())
-                {
+                if (isOnline()) {
                     try {
                         Intent placeAutoCompleteIntent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(AddDateEventActivity.this);
                         startActivityForResult(placeAutoCompleteIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
@@ -290,10 +288,40 @@ public class AddDateEventActivity extends AppCompatActivity {
                     } catch (GooglePlayServicesNotAvailableException e) {
                         e.printStackTrace();
                     }
-                }
-                else
-                {
+                } else {
                     Toast.makeText(getApplicationContext(), "Không có kết nối internet\nNhập địa chỉ thủ công", Toast.LENGTH_LONG).show();
+                    final AlertDialog dialog = new AlertDialog.Builder(AddDateEventActivity.this)
+                            .setTitle("Choose one")
+                            .show();
+                    dialog.setContentView(R.layout.custom_event_location_dialog);
+                    dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+
+                    EditText temp = (EditText) dialog.findViewById(R.id.eventLocationNameDialogEditText);
+                    EditText temp1 = (EditText) dialog.findViewById(R.id.eventLocationAddressDialogEditText);
+                    temp.setText(eventLocationEditText.getText());
+                    temp1.setText(eventLocationAddressTextView.getText());
+
+                    dialog.findViewById(R.id.eventLocationConfirm)
+                            .setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    dialog.dismiss();
+                                    EditText temp = (EditText) dialog.findViewById(R.id.eventLocationNameDialogEditText);
+                                    EditText temp1 = (EditText) dialog.findViewById(R.id.eventLocationAddressDialogEditText);
+                                    eventLocationEditText.setText(temp.getText());
+                                    eventLocationAddressTextView.setText(temp1.getText());
+                                    if (!temp1.getText().equals(""))
+                                        eventLocationAddressTextView.setVisibility(View.VISIBLE);
+                                }
+                            });
+
+                    dialog.findViewById(R.id.eventLocationDecline)
+                            .setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    dialog.dismiss();
+                                }
+                            });
                 }
             }
         });
@@ -406,7 +434,7 @@ public class AddDateEventActivity extends AppCompatActivity {
 
             // If the Photo Picker was called
             case REQUEST_CODE_PICK_PHOTOS:
-                if(resultCode == RESULT_OK) {
+                if (resultCode == RESULT_OK) {
                     selectedImage = data.getData();
                     mCurrentPhotoPath = selectedImage.getPath();
 
@@ -421,8 +449,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                 break;
 
             case REQUEST_TAKE_PHOTO:
-                if(resultCode == RESULT_OK)
-                {
+                if (resultCode == RESULT_OK) {
                     //selectedImage = Uri.parse(mCurrentPhotoPath);
                     // Then get the thumbnail of that photo
                     try {
@@ -433,12 +460,10 @@ public class AddDateEventActivity extends AppCompatActivity {
                 }
                 break;
 
-            case  PLACE_AUTOCOMPLETE_REQUEST_CODE:
-                if(resultCode == RESULT_OK)
-                {
+            case PLACE_AUTOCOMPLETE_REQUEST_CODE:
+                if (resultCode == RESULT_OK) {
                     Place place = PlaceAutocomplete.getPlace(this, data);
-                    if(place.getName().equals(""))
-                    {
+                    if (place.getName().equals("")) {
                         eventLocationAddressTextView.setVisibility(View.INVISIBLE);
                         eventLocationEditText.setText("");
                         break;
@@ -458,12 +483,12 @@ public class AddDateEventActivity extends AppCompatActivity {
     }
 
     /// Hàm dùng để thêm ImageView vào trong Attachment
-    private void addImageAttachment(final Bitmap yourSelectedImage)
-    {
-        TextView itemNameTextView = new TextView(getApplicationContext());
+    private void addImageAttachment(final Bitmap yourSelectedImage, int imageId) {
+        final TextView itemNameTextView = new TextView(getApplicationContext());
         itemNameTextView.setWidth(800);
         itemNameTextView.setText("Hình ảnh");
         itemNameTextView.setTextSize(19);
+        itemNameTextView.setId(imageId);
         final Button button = new Button(getApplicationContext());
         button.setText("Xoá");
         button.setId(eventAttachmentCount + 1);
@@ -471,18 +496,27 @@ public class AddDateEventActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 int deletedView = button.getId();
+                Log.d("myTag", "Button" + deletedView + "is being deleted. eventAttachmentCount: " + eventAttachmentCount);
                 button.setId(0);
                 eventAttachmentLinearLayout.removeViewAt(1 + deletedView);
-
-                for(int i = deletedView; i<eventAttachmentCount; i++){
+                db.deleteImageAttachment(itemNameTextView.getId());
+                for (int i = deletedView; i < eventAttachmentCount; i++) {
                     LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(deletedView);
-                    Button deletedButton = (Button)nextLayout.getChildAt(1);
+                    Button deletedButton = (Button) nextLayout.getChildAt(1);
+                    Log.d("myTag", "Button" + deletedButton.getId() + "is being moved.");
                     deletedButton.setId(i);
+                    Log.d("myTag", "Button" + i + "is now Button" + deletedButton.getId() + ".");
                 }
-
-                eventAttachmentItemLLayoutArray.remove(deletedView - 1);
+                Log.d("myTag", "eventAttachmentItemLLayoutHArray: " + eventAttachmentItemLLayoutHArray.size());
                 eventAttachmentItemLLayoutHArray.remove(deletedView - 1);
+                Log.d("myTag", "eventAttachmentItemLLayoutHArray: " + eventAttachmentItemLLayoutHArray.size());
+
+                Log.d("myTag", "eventAttachmentItemLLayoutArray: " + eventAttachmentItemLLayoutArray.size());
+                eventAttachmentItemLLayoutArray.remove(deletedView - 1);
+                Log.d("myTag", "eventAttachmentItemLLayoutArray: " + eventAttachmentItemLLayoutArray.size());
+
                 eventAttachmentCount--;
+                Log.d("myTag", "eventAttachmentCount: " + eventAttachmentCount);
                 totalViewCount--;
             }
         });
@@ -513,6 +547,11 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventAttachmentCount++;
         totalViewCount++;
         eventAttachmentSpinner.setSelection(0);
+
+        Log.d("myTag", "Button " + button.getId() + "is created"
+                + "\neventAttachmentCount: " + eventAttachmentCount
+                + "\neventAttachmentItemLLayoutHArray: " + eventAttachmentItemLLayoutHArray.size()
+                + "\neventAttachmentItemLLayoutArray: " + eventAttachmentItemLLayoutArray.size());
     }
 
     /// Hàm dùng để lấy thông tin contact từ danh bạ
@@ -548,9 +587,9 @@ public class AddDateEventActivity extends AppCompatActivity {
                 button.setId(0);
                 eventAttachmentLinearLayout.removeViewAt(1 + deletedView);
 
-                for(int i = deletedView; i<eventAttachmentCount; i++){
+                for (int i = deletedView; i < eventAttachmentCount; i++) {
                     LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(deletedView);
-                    Button deletedButton = (Button)nextLayout.getChildAt(1);
+                    Button deletedButton = (Button) nextLayout.getChildAt(1);
                     deletedButton.setId(i);
                 }
 
@@ -576,8 +615,7 @@ public class AddDateEventActivity extends AppCompatActivity {
 
         //kiểm tra xem ứng dụng có được quyền tạo cuộc gọi chưa
         if (ActivityCompat.checkSelfPermission(AddDateEventActivity.this,
-                Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
-        {
+                Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             //nếu chưa có quyền tạo cuộc gọi thì đòi quyền từ người dùng
             ActivityCompat.requestPermissions(AddDateEventActivity.this,
                     new String[]{Manifest.permission.READ_CONTACTS},
@@ -587,7 +625,7 @@ public class AddDateEventActivity extends AppCompatActivity {
             if (ActivityCompat.checkSelfPermission(AddDateEventActivity.this,
                     Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED)
                 //nếu chưa thì return
-                Toast.makeText(getApplicationContext(),"Can't get READ_CONTACTS permission", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Can't get READ_CONTACTS permission", Toast.LENGTH_LONG).show();
         }
 
         // getting contacts ID
@@ -647,8 +685,8 @@ public class AddDateEventActivity extends AppCompatActivity {
     /// Hàm dùng để lấy hình ảnh từ thư viện
     private void retrievePhotos() throws IOException {
         final Bitmap yourSelectedImage = decodeUri(selectedImage);
-        db.addImageAttachment(yourSelectedImage);
-        addImageAttachment(yourSelectedImage);
+        int id = db.addImageAttachment(yourSelectedImage);
+        addImageAttachment(yourSelectedImage, id);
     }
 
     //Hàm chụp ảnh và lưu ảnh vào bộ nhớ
@@ -676,9 +714,10 @@ public class AddDateEventActivity extends AppCompatActivity {
     }
 
     String mCurrentPhotoPath;
+
     private File createImageFile() throws IOException {
         // Create an image file name
-        Long tsLong = System.currentTimeMillis()/1000;
+        Long tsLong = System.currentTimeMillis() / 1000;
         String ts = tsLong.toString();
         String imageFileName = "JPEG_" + ts + ".jpg";
 
@@ -761,7 +800,8 @@ public class AddDateEventActivity extends AppCompatActivity {
     int mDay;
     int mHour;
     int mMinute;
-    private void timePicker(final int whichTime){
+
+    private void timePicker(final int whichTime) {
         // Get Current Time
         final Calendar c = Calendar.getInstance();
         mHour = c.get(Calendar.HOUR_OF_DAY);
@@ -772,36 +812,36 @@ public class AddDateEventActivity extends AppCompatActivity {
                 new TimePickerDialog.OnTimeSetListener() {
 
                     @Override
-                    public void onTimeSet(TimePicker view, int hourOfDay,int minute) {
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
 
                         mHour = hourOfDay;
                         mMinute = minute;
 
-                        if(whichTime == 0)
+                        if (whichTime == 0)
                             eventStartTimeButton.setText(mHour + ":" + mMinute);
-                        if(whichTime == 1)
-                            eventEndTimeButton.setText(mHour+ ":" + mMinute);
+                        if (whichTime == 1)
+                            eventEndTimeButton.setText(mHour + ":" + mMinute);
                     }
                 }, mHour, mMinute, false);
         timePickerDialog.show();
     }
 
-    private void datePicker(){
-            // Get Current Date
-            final Calendar c = Calendar.getInstance();
-            mYear = c.get(Calendar.YEAR);
-            mMonth = c.get(Calendar.MONTH);
-            mDay = c.get(Calendar.DAY_OF_MONTH);
+    private void datePicker() {
+        // Get Current Date
+        final Calendar c = Calendar.getInstance();
+        mYear = c.get(Calendar.YEAR);
+        mMonth = c.get(Calendar.MONTH);
+        mDay = c.get(Calendar.DAY_OF_MONTH);
 
-            DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                    new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                new DatePickerDialog.OnDateSetListener() {
 
-                        @Override
-                        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                            dateButton.setText(dayOfMonth + "/" + monthOfYear + "/" + year);
-                        }
-                    }, mYear, mMonth, mDay);
-            datePickerDialog.show();
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        dateButton.setText(dayOfMonth + "/" + monthOfYear + "/" + year);
+                    }
+                }, mYear, mMonth, mDay);
+        datePickerDialog.show();
     }
 
     public boolean isOnline() {
