@@ -12,6 +12,8 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Asus on 16/12/2017.
@@ -248,7 +250,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         id++;
         reportCursor.close();
 
-        // Add the newly created image attachment into the database
+        // Add the phone contact to the database
         ContentValues newContactValue = new ContentValues();
         newContactValue.put(KEY_ID, id);
         newContactValue.put(KEY_CONTACT_NAME, contact.getContactName());
@@ -265,8 +267,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor reportCursor = db.rawQuery(sql, null);
         reportCursor.moveToNext();
 
-        // Get the path of the picture from the database row pointed by
-        // the cursor using the getColumnIndex method of the cursor.
+        // Get the contact info
         PhoneContact contact = new PhoneContact(
                 reportCursor.getString(reportCursor.getColumnIndex(KEY_CONTACT_NAME)),
                 reportCursor.getString(reportCursor.getColumnIndex(KEY_CONTACT_NUMBER)));
@@ -283,4 +284,121 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    // Dates Table methods
+
+    public int addDate(String date) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        // Check if the date already existed in the table
+        String sql = "SELECT * FROM " + TABLE_DATES + " WHERE " + KEY_DAY + " = " + date;
+
+        Cursor reportCursor = db.rawQuery(sql, null);
+
+        String result = reportCursor.getString(reportCursor.getColumnIndex(KEY_DAY));
+
+        if (result != null && result.length() != 0) {
+            // Get the last id in the table
+            sql = "SELECT " + KEY_ID + " FROM " + TABLE_DATES + " ORDER BY " + KEY_ID + " DESC limit 1 ";
+            reportCursor = db.rawQuery(sql, null);
+            reportCursor.moveToNext();
+            int id = reportCursor.getInt(reportCursor.
+                    getColumnIndex(KEY_ID));
+            id++;
+            reportCursor.close();
+
+            // Add the newly created image attachment into the database
+            ContentValues newDateValue = new ContentValues();
+            newDateValue.put(KEY_ID, id);
+            newDateValue.put(KEY_DAY, date);
+
+            db.insert(TABLE_DATES, null, newDateValue);
+            return id;
+        } else {
+            int resultid = reportCursor.getInt(reportCursor.getColumnIndex(KEY_ID));
+            reportCursor.close();
+            return resultid;
+        }
+    }
+
+    public void deleteDate(int id) {
+        // Remove the report from the database
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(TABLE_DATES,
+                KEY_ID + "=?",
+                new String[]{String.valueOf(id)});
+    }
+
+
+    // Event Table methods
+    public int addEvent(Event event) {
+        SQLiteDatabase db = getWritableDatabase();
+        // Get the last id in the table
+        String sql = "SELECT " + KEY_ID + " FROM " + TABLE_EVENTS + " ORDER BY " + KEY_ID + " DESC limit 1 ";
+        Cursor reportCursor = db.rawQuery(sql, null);
+        reportCursor.moveToNext();
+
+        int id = reportCursor.getInt(reportCursor.
+                getColumnIndex(KEY_ID));
+        id++;
+        reportCursor.close();
+
+        // Add the newly created image attachment into the database
+        ContentValues newEventValue = new ContentValues();
+        newEventValue.put(KEY_ID, id);
+        newEventValue.put(KEY_DAY_ID, event.getDayid());
+        newEventValue.put(KEY_IMAGEATTACHMENT_ID, event.getImageattachmentid());
+        newEventValue.put(KEY_PHONECONTACTS_ID, event.getPhonecontactid());
+        newEventValue.put(KEY_TITLE, event.getTitle());
+        newEventValue.put(KEY_LOCATION_NAME, event.getLocationname());
+        newEventValue.put(KEY_LOCATION_ADDRESS, event.getLocationaddress());
+        newEventValue.put(KEY_START_TIME, event.getStarttime());
+        newEventValue.put(KEY_END_TIME, event.getEndtime());
+        newEventValue.put(KEY_DESCRIPTION, event.getDescription());
+        newEventValue.put(KEY_NOTIFY_TIME, event.getNotifytime());
+
+        db.insert(TABLE_EVENTS, null, newEventValue);
+        return id;
+    }
+
+    public void deleteEvent(int id) {
+        // Remove the report from the database
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(TABLE_EVENTS,
+                KEY_ID + "=?",
+                new String[]{String.valueOf(id)});
+    }
+
+    public List<Event> getEvent(Event event) {
+        List<Event> Events = new ArrayList<Event>();
+
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + " = " + event.getDayid();
+
+        Cursor reportCursor = db.rawQuery(sql, null);
+
+        // looping through all rows and adding to list
+        if (reportCursor.moveToFirst()) {
+            do {
+                Event temp = new Event(
+                        reportCursor.getInt(reportCursor.getColumnIndex(KEY_ID)),
+                        reportCursor.getInt(reportCursor.getColumnIndex(KEY_DAY_ID)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_IMAGEATTACHMENT_ID)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_PHONECONTACTS_ID)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_TITLE)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_LOCATION_NAME)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_LOCATION_ADDRESS)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_START_TIME)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_END_TIME)),
+                        reportCursor.getString(reportCursor.getColumnIndex(KEY_DESCRIPTION)),
+                        reportCursor.getInt(reportCursor.getColumnIndex(KEY_NOTIFY_TIME))
+                );
+
+                // adding to todo list
+                Events.add(temp);
+            } while (reportCursor.moveToNext());
+
+        }
+        reportCursor.close();
+        return Events;
+    }
 }
