@@ -9,14 +9,19 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class DateDetailActivity extends AppCompatActivity {
 
     private TextView dateTextView;
+    DatabaseHelper db;
+    List<Event> dateEvents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_date_detail);
+        db = new DatabaseHelper(getApplicationContext());
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -37,6 +42,12 @@ public class DateDetailActivity extends AppCompatActivity {
                 startActivity(addDateEvent);
             }
         });
+
+        Event event = new Event();
+        int id = db.addDate(date);
+        event.setDayid(id);
+        dateEvents = db.getEvent(event);
+        
     }
 
 }

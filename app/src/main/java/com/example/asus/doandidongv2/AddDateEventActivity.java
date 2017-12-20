@@ -22,9 +22,11 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -73,6 +75,7 @@ public class AddDateEventActivity extends AppCompatActivity {
     private Button eventNotifyTimeButton;
     private EditText eventNameEditText;
     private EditText eventLocationEditText;
+    private EditText eventDescriptionEditText;
     private Spinner eventAttachmentSpinner;
     private LinearLayout eventAttachmentLinearLayout;
     private ImageView hiddenImageView;
@@ -95,6 +98,8 @@ public class AddDateEventActivity extends AppCompatActivity {
     private Uri uriContact;
     private Uri selectedImage;
     private String contactID;     // contacts unique ID
+    private String imageAttachmentIds;
+    private String phoneContactIds;
     private File photoFile;
     GeoDataClient mGeoDataClient;
 
@@ -134,6 +139,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventAttachmentLinearLayout = (LinearLayout) findViewById(R.id.eventAttachmentLinearLayout);
         hiddenImageView = (ImageView) findViewById(R.id.hiddenImageView);
         eventLocationImageView = findViewById(R.id.eventLocationImageView);
+        eventDescriptionEditText = (EditText) findViewById(R.id.eventDescriptionEditText);
 
         eventAttachmentItemLLayoutArray = new ArrayList<LinearLayout>();
         eventAttachmentItemLLayoutHArray = new ArrayList<LinearLayout>();
@@ -414,6 +420,51 @@ public class AddDateEventActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // action with ID action_save_event was selected
+            case R.id.action_save_event:
+                Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
+                        .show();
+                Event newEvent = new Event();
+                newEvent.setDayid(db.addDate(dateButton.getText().toString()));
+                for (int i = 0; i < eventAttachmentCount; i++) {
+                    LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(i);
+                    TextView nextTextView = (TextView) nextLayout.getChildAt(0);
+                    if (nextTextView.getText().equals("Hình ảnh")) {
+                        imageAttachmentIds += nextTextView.getId() + " ";
+                    } else {
+                        if (nextTextView.getText().equals("Số điện thoại")) {
+                            phoneContactIds += nextTextView.getId() + " ";
+                        }
+                    }
+                }
+                newEvent.setImageattachmentid(imageAttachmentIds.trim());
+                newEvent.setPhonecontactid(phoneContactIds.trim());
+                if (!TextUtils.isEmpty(eventLocationEditText.getText())) {
+                    newEvent.setLocationname(eventLocationEditText.getText().toString());
+                }
+                if (!TextUtils.isEmpty(eventLocationAddressTextView.getText())) {
+                    newEvent.setLocationaddress(eventLocationAddressTextView.getText().toString());
+                }
+                newEvent.setStarttime(eventStartTimeButton.getText().toString());
+                newEvent.setEndtime(eventEndTimeButton.getText().toString());
+                if (!TextUtils.isEmpty(eventDescriptionEditText.getText())) {
+                    newEvent.setDescription(eventDescriptionEditText.getText().toString());
+                }
+                if (!eventNotifyTimeButton.getText().equals(R.string.no_notification)) {
+                    newEvent.setNotifytime(Integer.parseInt(eventNotifyTimeButton.getText().toString()));
+                }
+
+                break;
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -558,10 +609,8 @@ public class AddDateEventActivity extends AppCompatActivity {
     private void retrieveContactName() {
         //Get the name of the contact first
         String contactName = null;
-
         // querying contact data store
         Cursor cursor = getContentResolver().query(uriContact, null, null, null, null);
-
         if (cursor.moveToFirst()) {
 
             // DISPLAY_NAME = The display name for the contact.
@@ -569,13 +618,59 @@ public class AddDateEventActivity extends AppCompatActivity {
 
             contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
         }
-
         cursor.close();
 
-        TextView itemNameTextView = new TextView(getApplicationContext());
+
+        //Get the phone number of the contact
+        String contactNumber = null;
+        //kiểm tra xem ứng dụng có được quyền tạo cuộc gọi chưa
+        if (ActivityCompat.checkSelfPermission(AddDateEventActivity.this,
+                Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            //nếu chưa có quyền tạo cuộc gọi thì đòi quyền từ người dùng
+            ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                    new String[]{Manifest.permission.READ_CONTACTS},
+                    REQUEST_PERMISSION_READ_CONTACTS);
+
+            //kiểm tra xem ứng dụng có được quyền tạo cuộc gọi chưa
+            if (ActivityCompat.checkSelfPermission(AddDateEventActivity.this,
+                    Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED)
+                //nếu chưa thì return
+                Toast.makeText(getApplicationContext(), "Can't get READ_CONTACTS permission", Toast.LENGTH_LONG).show();
+        }
+        // getting contacts ID
+        Cursor cursorID = getContentResolver().query(uriContact,
+                new String[]{ContactsContract.Contacts._ID},
+                null, null, null);
+
+        if (cursorID.moveToFirst()) {
+            contactID = cursorID.getString(cursorID.getColumnIndex(ContactsContract.Contacts._ID));
+        }
+        cursorID.close();
+        Log.d(TAG, "Contact ID: " + contactID);
+
+        // Using the contact ID now we will get contact phone number
+        Cursor cursorPhone = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
+
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? AND " +
+                        ContactsContract.CommonDataKinds.Phone.TYPE + " = " +
+                        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
+
+                new String[]{contactID},
+                null);
+        if (cursorPhone.moveToFirst()) {
+            contactNumber = cursorPhone.getString(cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        }
+        cursorPhone.close();
+
+        PhoneContact newPhoneContact = new PhoneContact(contactName, contactNumber);
+        int id = db.addPhoneContact(newPhoneContact);
+
+        final TextView itemNameTextView = new TextView(getApplicationContext());
         itemNameTextView.setWidth(800);
         itemNameTextView.setText("Số điện thoại");
         itemNameTextView.setTextSize(19);
+        itemNameTextView.setId(id);
         final Button button = new Button(getApplicationContext());
         button.setText("Xoá");
         button.setId(eventAttachmentCount + 1);
@@ -586,6 +681,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                 int deletedView = button.getId();
                 button.setId(0);
                 eventAttachmentLinearLayout.removeViewAt(1 + deletedView);
+                db.deletePhoneContact(itemNameTextView.getId());
 
                 for (int i = deletedView; i < eventAttachmentCount; i++) {
                     LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(deletedView);
@@ -609,54 +705,6 @@ public class AddDateEventActivity extends AppCompatActivity {
         LLayout.addView(itemNameTextView);
         LLayout.addView(button);
         eventAttachmentItemLLayoutHArray.add(LLayout);
-
-        //Get the phone number of the contact
-        String contactNumber = null;
-
-        //kiểm tra xem ứng dụng có được quyền tạo cuộc gọi chưa
-        if (ActivityCompat.checkSelfPermission(AddDateEventActivity.this,
-                Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            //nếu chưa có quyền tạo cuộc gọi thì đòi quyền từ người dùng
-            ActivityCompat.requestPermissions(AddDateEventActivity.this,
-                    new String[]{Manifest.permission.READ_CONTACTS},
-                    REQUEST_PERMISSION_READ_CONTACTS);
-
-            //kiểm tra xem ứng dụng có được quyền tạo cuộc gọi chưa
-            if (ActivityCompat.checkSelfPermission(AddDateEventActivity.this,
-                    Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED)
-                //nếu chưa thì return
-                Toast.makeText(getApplicationContext(), "Can't get READ_CONTACTS permission", Toast.LENGTH_LONG).show();
-        }
-
-        // getting contacts ID
-        Cursor cursorID = getContentResolver().query(uriContact,
-                new String[]{ContactsContract.Contacts._ID},
-                null, null, null);
-
-        if (cursorID.moveToFirst()) {
-            contactID = cursorID.getString(cursorID.getColumnIndex(ContactsContract.Contacts._ID));
-        }
-
-        cursorID.close();
-
-        Log.d(TAG, "Contact ID: " + contactID);
-
-        // Using the contact ID now we will get contact phone number
-        Cursor cursorPhone = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
-
-                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? AND " +
-                        ContactsContract.CommonDataKinds.Phone.TYPE + " = " +
-                        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
-
-                new String[]{contactID},
-                null);
-
-        if (cursorPhone.moveToFirst()) {
-            contactNumber = cursorPhone.getString(cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-        }
-
-        cursorPhone.close();
 
         TextView contactPhoneNumberTextView = new TextView(getApplicationContext());
         contactPhoneNumberTextView.setTextSize(17);
@@ -682,7 +730,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventAttachmentSpinner.setSelection(0);
     }
 
-    /// Hàm dùng để lấy hình ảnh từ thư viện
+    // Hàm dùng để lấy hình ảnh từ thư viện
     private void retrievePhotos() throws IOException {
         final Bitmap yourSelectedImage = decodeUri(selectedImage);
         int id = db.addImageAttachment(yourSelectedImage);

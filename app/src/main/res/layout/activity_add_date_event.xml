@@ -10,6 +10,7 @@
         android:id="@+id/scrollView"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
+
         <LinearLayout
             android:id="@+id/addEventLinearLayout"
             android:layout_width="fill_parent"
@@ -20,26 +21,26 @@
                 android:id="@+id/dateButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/black"
                 android:background="@color/white"
                 android:text="19/02/2017"
+                android:textColor="@android:color/black"
                 android:textSize="16sp" />
 
             <LinearLayout
                 android:id="@+id/eventTitleLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/customborder">
+                android:background="@drawable/customborder"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/eventNameTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Tên sự kiện"
-                    android:textColor="@android:color/black"
                     android:layout_marginStart="10dp"
                     android:drawableStart="@drawable/eventtitle"
+                    android:text="Tên sự kiện"
+                    android:textColor="@android:color/black"
                     android:textSize="18sp" />
 
                 <EditText
@@ -52,27 +53,27 @@
 
             <LinearLayout
                 android:id="@+id/eventTimeLinearLayout"
-                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/customborder">
+                android:background="@drawable/customborder"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/eventTimeTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Thời gian"
                     android:layout_marginStart="10dp"
+                    android:drawableStart="@drawable/eventtime"
+                    android:text="Thời gian"
                     android:textColor="@android:color/black"
-                    android:textSize="18sp"
-                    android:drawableStart="@drawable/eventtime"/>
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@+id/eventStartTimeTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Từ"
                     android:layout_gravity="center"
+                    android:text="Từ"
                     android:textColor="@android:color/black"
                     android:textSize="18sp" />
 
@@ -89,8 +90,8 @@
                     android:id="@+id/eventEndTimeTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Đến"
                     android:layout_gravity="center"
+                    android:text="Đến"
                     android:textColor="@android:color/black"
                     android:textSize="18sp" />
 
@@ -106,48 +107,48 @@
 
             <LinearLayout
                 android:id="@+id/eventNotifyTimeLinearLayout"
-                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/customborder">
+                android:background="@drawable/customborder"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/eventNotifyTimeTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:drawableStart="@drawable/eventnotifytime"
                     android:text="Thông báo"
                     android:textColor="@android:color/black"
-                    android:textSize="18sp"
-                    android:drawableStart="@drawable/eventnotifytime"
-                    android:layout_marginStart="10dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:textSize="18sp" />
 
                 <Button
                     android:id="@+id/eventNotifyTimeButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:background="@color/white"
-                    android:textSize="16sp"
                     android:text="Trước 10 phút"
                     android:textAllCaps="false"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:textSize="16sp" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/eventDescriptionLinerLayout"
-                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/customborder">
+                android:background="@drawable/customborder"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/eventDescriptionTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:drawableStart="@drawable/eventdescription"
                     android:text="Mô tả sự kiện"
                     android:textColor="@android:color/black"
-                    android:drawableStart="@drawable/eventdescription"
-                    android:layout_marginStart="10dp"
-                    android:textSize="18sp"/>
+                    android:textSize="18sp" />
 
                 <EditText
                     android:id="@+id/eventDescriptionEditText"
@@ -161,62 +162,64 @@
 
             <LinearLayout
                 android:id="@+id/eventLocationLinearLayout"
-                android:background="@drawable/customborder"
-                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:background="@drawable/customborder"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/locationTextView"
-                    android:text="Địa điểm"
-                    android:textSize="18sp"
-                    android:textColor="@android:color/black"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
-                    android:drawableStart="@drawable/eventlocation"/>
+                    android:drawableStart="@drawable/eventlocation"
+                    android:text="Địa điểm"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp" />
 
                 <EditText
                     android:id="@+id/eventLocationEditText"
-                    android:textSize="18sp"
-                    android:textColor="@color/black"
-                    android:focusable="false"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@+id/eventLocationAddressTextView"
-                    android:visibility="gone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
                     android:textColor="#4b4747"
                     android:textSize="16sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent" />
+                    android:visibility="gone" />
 
                 <ImageView
                     android:id="@+id/eventLocationImageView"
-                    android:layout_marginTop="5dp"
-                    android:scaleType="centerCrop"
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
-                    android:visibility="gone"/>
+                    android:layout_marginTop="5dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/eventAttachmentLinearLayout"
-                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/customborder">
+                android:background="@drawable/customborder"
+                android:orientation="vertical">
+
                 <TextView
                     android:id="@+id/eventAttachmentTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Đính kèm"
+                    android:layout_marginStart="10dp"
                     android:drawableStart="@drawable/eventattachment"
+                    android:text="Đính kèm"
                     android:textColor="@android:color/black"
-                    android:textSize="18sp"
-                    android:layout_marginStart="10dp" />
+                    android:textSize="18sp" />
+
                 <Spinner
                     android:id="@+id/eventAttachmentSpinner"
                     android:layout_width="match_parent"
@@ -230,8 +233,8 @@
 
     <ImageView
         android:id="@+id/hiddenImageView"
-        android:visibility="invisible"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="invisible" />
 
 </RelativeLayout>

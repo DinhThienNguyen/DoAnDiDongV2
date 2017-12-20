@@ -18,6 +18,12 @@ public class Event {
     private int notifytime;
 
     public Event() {
+        imageattachmentid = "";
+        phonecontactid = "";
+        title = "Không có tiêu đề";
+        locationaddress = "";
+        locationname = "";
+        description = "";
     }
 
     public Event(int _id, int _dayid, String _imageattachmentid, String _phonecontactid, String _title, String _locationname, String _locationaddress, String _starttime, String _endtime, String _description, int _notifytime) {
