@@ -10,6 +10,7 @@ public class Event {
     private String imageattachmentid;
     private String phonecontactid;
     private String title;
+    private String locationid;
     private String locationname;
     private String locationaddress;
     private String starttime;
@@ -21,18 +22,20 @@ public class Event {
         imageattachmentid = "";
         phonecontactid = "";
         title = "Không có tiêu đề";
+        locationid = "";
         locationaddress = "";
         locationname = "";
         description = "";
     }
 
-    public Event(int _id, int _dayid, String _imageattachmentid, String _phonecontactid, String _title, String _locationname, String _locationaddress, String _starttime, String _endtime, String _description, int _notifytime) {
+    public Event(int _id, int _dayid, String _imageattachmentid, String _phonecontactid, String _title, String _locationid, String _locationname, String _locationaddress, String _starttime, String _endtime, String _description, int _notifytime) {
         if (id != -1)
             id = _id;
         dayid = _dayid;
         imageattachmentid = _imageattachmentid;
         phonecontactid = _phonecontactid;
         title = _title;
+        locationid = _locationid;
         locationname = _locationname;
         locationaddress = _locationaddress;
         starttime = _starttime;
@@ -56,6 +59,10 @@ public class Event {
 
     public void setTitle(String _title) {
         title = _title;
+    }
+
+    public void setLocationid(String _locationid) {
+        locationid = _locationid;
     }
 
     public void setLocationname(String _locationname) {
@@ -93,6 +100,10 @@ public class Event {
 
     public String getPhonecontactid() {
         return phonecontactid;
+    }
+
+    public String getLocationid() {
+        return locationid;
     }
 
     public String getLocationname() {

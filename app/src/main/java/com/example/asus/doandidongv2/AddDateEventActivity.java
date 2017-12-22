@@ -101,7 +101,14 @@ public class AddDateEventActivity extends AppCompatActivity {
     private String imageAttachmentIds;
     private String phoneContactIds;
     private File photoFile;
+    private String locationId;
+    private Bitmap locationImage;
     GeoDataClient mGeoDataClient;
+    int mYear;
+    int mMonth;
+    int mDay;
+    int mHour;
+    int mMinute;
 
     //this counts how many event attachments there are in this activity
     private int eventAttachmentCount;
@@ -118,12 +125,14 @@ public class AddDateEventActivity extends AppCompatActivity {
     DatabaseHelper db;
     Context mContext;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_date_event);
 
         db = new DatabaseHelper(getApplicationContext());
+
         mContext = getApplicationContext();
         eventAttachmentCount = 0;
 
@@ -170,6 +179,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         mMinute = c.get(Calendar.MINUTE);
         eventStartTimeButton.setText(mHour + ":" + mMinute);
         mMinute += 30;
+        convertMinuteToHour();
         eventEndTimeButton.setText(mHour + ":" + mMinute);
 
         eventNotifyTimeButton.setOnClickListener(new View.OnClickListener() {
@@ -410,6 +420,8 @@ public class AddDateEventActivity extends AppCompatActivity {
 
             }
         });
+        imageAttachmentIds = "";
+        phoneContactIds = "";
     }
 
     @Override
@@ -428,6 +440,9 @@ public class AddDateEventActivity extends AppCompatActivity {
                         .show();
                 Event newEvent = new Event();
                 newEvent.setDayid(db.addDate(dateButton.getText().toString()));
+                if (!TextUtils.isEmpty(eventNameEditText.getText())) {
+                    newEvent.setTitle(eventNameEditText.getText().toString());
+                }
                 for (int i = 0; i < eventAttachmentCount; i++) {
                     LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(i);
                     TextView nextTextView = (TextView) nextLayout.getChildAt(0);
@@ -441,6 +456,10 @@ public class AddDateEventActivity extends AppCompatActivity {
                 }
                 newEvent.setImageattachmentid(imageAttachmentIds.trim());
                 newEvent.setPhonecontactid(phoneContactIds.trim());
+                if (!TextUtils.isEmpty(locationId)) {
+                    newEvent.setLocationid(locationId);
+                    db.addLocationImage(locationId, locationImage);
+                }
                 if (!TextUtils.isEmpty(eventLocationEditText.getText())) {
                     newEvent.setLocationname(eventLocationEditText.getText().toString());
                 }
@@ -453,9 +472,27 @@ public class AddDateEventActivity extends AppCompatActivity {
                     newEvent.setDescription(eventDescriptionEditText.getText().toString());
                 }
                 if (!eventNotifyTimeButton.getText().equals(R.string.no_notification)) {
-                    newEvent.setNotifytime(Integer.parseInt(eventNotifyTimeButton.getText().toString()));
-                }
+                    switch (eventNotifyTimeButton.getText().toString()) {
+                        case "Trước 10 phút":
+                            newEvent.setNotifytime(10);
+                            break;
 
+                        case "Trước 30 phút":
+                            newEvent.setNotifytime(30);
+                            break;
+
+                        default:
+                            String result[] = eventNotifyTimeButton.getText().toString().split(" ");
+                            newEvent.setNotifytime(Integer.parseInt(result[1]));
+                            break;
+                    }
+                } else {
+                    newEvent.setNotifytime(-1);
+                }
+                db.addEvent(newEvent);
+                Intent addDateEvent = new Intent(AddDateEventActivity.this, DateDetailActivity.class);
+                addDateEvent.putExtra("Date", dateButton.getText());
+                startActivity(addDateEvent);
                 break;
             default:
                 break;
@@ -487,7 +524,6 @@ public class AddDateEventActivity extends AppCompatActivity {
             case REQUEST_CODE_PICK_PHOTOS:
                 if (resultCode == RESULT_OK) {
                     selectedImage = data.getData();
-                    mCurrentPhotoPath = selectedImage.getPath();
 
                     // Then get the thumbnail of that photo
                     try {
@@ -523,7 +559,8 @@ public class AddDateEventActivity extends AppCompatActivity {
                     eventLocationEditText.setText(place.getName());
                     eventLocationAddressTextView.setText(place.getAddress());
                     eventLocationAddressTextView.setVisibility(View.VISIBLE);
-                    getPhotos(place.getId());
+                    locationId = place.getId();
+                    getPhotos(locationId);
                 }
                 break;
 
@@ -761,7 +798,6 @@ public class AddDateEventActivity extends AppCompatActivity {
         }
     }
 
-    String mCurrentPhotoPath;
 
     private File createImageFile() throws IOException {
         // Create an image file name
@@ -775,8 +811,6 @@ public class AddDateEventActivity extends AppCompatActivity {
         // Create a new image file
         File image = new File(storageDir, imageFileName);
 
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.toString();
         return image;
     }
 
@@ -834,20 +868,16 @@ public class AddDateEventActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
                         PlacePhotoResponse photo = task.getResult();
-                        Bitmap bitmap = photo.getBitmap();
-                        eventLocationImageView.setImageBitmap(bitmap);
+                        locationImage = photo.getBitmap();
+                        eventLocationImageView.setImageBitmap(locationImage);
                     }
                 });
+                photoMetadataBuffer.release();
             }
         });
         eventLocationImageView.setVisibility(View.VISIBLE);
     }
 
-    int mYear;
-    int mMonth;
-    int mDay;
-    int mHour;
-    int mMinute;
 
     private void timePicker(final int whichTime) {
         // Get Current Time
@@ -892,11 +922,18 @@ public class AddDateEventActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    public boolean isOnline() {
+    private boolean isOnline() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    private void convertMinuteToHour() {
+        if (mMinute >= 60) {
+            mMinute -= 60;
+            mHour++;
+        }
     }
 
 }
