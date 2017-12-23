@@ -90,6 +90,8 @@ public class Event {
     }
 
     // Get methods
+    public int getId(){return id;}
+
     public int getDayid() {
         return dayid;
     }

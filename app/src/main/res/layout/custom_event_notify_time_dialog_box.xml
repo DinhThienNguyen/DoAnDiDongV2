@@ -14,10 +14,20 @@
         />
 
     <Button
-        android:id="@+id/tenMinutesBeforeButton"
+        android:id="@+id/atEventTimeButton"
         android:background="@drawable/customborder"
         android:textColor="@color/black"
         android:layout_below="@id/noNotificationButton"
+        android:textAllCaps="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/at_event_time" />
+
+    <Button
+        android:id="@+id/tenMinutesBeforeButton"
+        android:background="@drawable/customborder"
+        android:textColor="@color/black"
+        android:layout_below="@id/atEventTimeButton"
         android:textAllCaps="false"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

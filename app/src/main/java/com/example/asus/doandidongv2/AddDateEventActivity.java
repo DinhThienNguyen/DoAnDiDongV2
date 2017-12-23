@@ -132,7 +132,6 @@ public class AddDateEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_date_event);
 
         db = new DatabaseHelper(getApplicationContext());
-
         mContext = getApplicationContext();
         eventAttachmentCount = 0;
 
@@ -197,6 +196,15 @@ public class AddDateEventActivity extends AppCompatActivity {
                             public void onClick(View v) {
                                 dialog.dismiss();
                                 eventNotifyTimeButton.setText(R.string.no_notification);
+                            }
+                        });
+
+                dialog.findViewById(R.id.atEventTimeButton)
+                        .setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                                eventNotifyTimeButton.setText(R.string.at_event_time);
                             }
                         });
 
@@ -466,13 +474,27 @@ public class AddDateEventActivity extends AppCompatActivity {
                 if (!TextUtils.isEmpty(eventLocationAddressTextView.getText())) {
                     newEvent.setLocationaddress(eventLocationAddressTextView.getText().toString());
                 }
+                String starttime[] = eventStartTimeButton.getText().toString().split(":");
+                String endtime[] = eventEndTimeButton.getText().toString().split(":");
+                if(Integer.parseInt(starttime[0]) == Integer.parseInt(endtime[0])){
+                    if(Integer.parseInt(starttime[1]) >= Integer.parseInt(endtime[1])){
+                        Toast.makeText(getApplicationContext(), "Thời gian bắt đầu của sự kiện phải nhỏ hơn thời gian kết thúc",
+                                Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                }
                 newEvent.setStarttime(eventStartTimeButton.getText().toString());
                 newEvent.setEndtime(eventEndTimeButton.getText().toString());
+
                 if (!TextUtils.isEmpty(eventDescriptionEditText.getText())) {
                     newEvent.setDescription(eventDescriptionEditText.getText().toString());
                 }
                 if (!eventNotifyTimeButton.getText().equals(R.string.no_notification)) {
                     switch (eventNotifyTimeButton.getText().toString()) {
+                        case "Tại thòi gian bắt đầu sự kiện":
+                            newEvent.setNotifytime(0);
+                            break;
+
                         case "Trước 10 phút":
                             newEvent.setNotifytime(10);
                             break;

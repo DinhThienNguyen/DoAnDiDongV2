@@ -3,9 +3,12 @@
     <string name="from_gallery">Từ thư viện</string>
     <string name="capture_image">Chụp ảnh</string>
     <string name="no_notification">Không thông báo</string>
+    <string name="at_event_time">Tại thòi gian bắt đầu sự kiện</string>
     <string name="ten_minutes_before">Trước 10 phút</string>
     <string name="thirty_minutes_before">Trước 30 phút</string>
     <string name="custom_notify_time">Tuỳ chọn</string>
+    <string name="delete_event">Xoá sự kiện</string>
+    <string name="modify_event">Chỉnh sửa sự kiện</string>
     <string name="custom_notify_time_txtview">Hiện thông báo trước</string>
     <string name="exit_dialog">Huỷ</string>
     <string-array name="event_items">

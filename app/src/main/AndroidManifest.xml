@@ -64,7 +64,8 @@
 
         <activity
             android:name=".EventDetail"
-            android:theme="@style/AppTheme.NoTitleBar" />
+            android:label=""
+            android:theme="@style/AppTheme.ActionBar.Transparent"/>
     </application>
 
 </manifest>

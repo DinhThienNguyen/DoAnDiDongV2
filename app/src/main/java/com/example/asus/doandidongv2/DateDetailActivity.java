@@ -40,6 +40,7 @@ public class DateDetailActivity extends AppCompatActivity {
     private LinearLayout dateEventLinearLayout;
     private GeoDataClient mGeoDataClient;
     private Bitmap resultBmp;
+    private int i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,16 +75,29 @@ public class DateDetailActivity extends AppCompatActivity {
         event.setDayid(id);
         dateEvents = db.getEvent(event);
 
-        for (int i = 0; i < dateEvents.size(); i++) {
+        for (i = 0; i < dateEvents.size(); i++) {
             Event temp = dateEvents.get(i);
             LayoutInflater inflater = LayoutInflater.from(this);
             RelativeLayout row = (RelativeLayout) inflater.inflate(R.layout.date_event_layout, null);
+            row.setId(temp.getId());
             TextView title = (TextView) row.findViewById(R.id.eventTitleFragmentTextView);
             title.setText(temp.getTitle());
             TextView time = (TextView) row.findViewById(R.id.eventTimeFragmentTextView);
             time.setText(temp.getStarttime() + " - " + temp.getEndtime());
             TextView location = (TextView) row.findViewById(R.id.eventLocationFragmentTextView);
-            location.setText(temp.getLocationname() + ", " + temp.getLocationaddress());
+            if(!temp.getLocationname().equals("")){
+                if(!temp.getLocationaddress().equals("")){
+                    location.setText(temp.getLocationname() + ", " + temp.getLocationaddress());
+                }
+                else{
+                    location.setText(temp.getLocationname());
+                }
+            }else {
+                if(!temp.getLocationaddress().equals("")){
+                    location.setText(temp.getLocationaddress());
+                }
+            }
+
             if (!temp.getLocationid().equals("")) {
                 ImageView locationImage = (ImageView) row.findViewById(R.id.eventLocationImageFragment);
                 locationImage.setImageBitmap(db.getLocationImage(temp.getLocationid()));
@@ -91,43 +105,15 @@ public class DateDetailActivity extends AppCompatActivity {
                 LinearLayout gradient = (LinearLayout) row.findViewById(R.id.gradientLayout);
                 gradient.setVisibility(View.GONE);
             }
+            row.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent displayEventDetail = new Intent(v.getContext(), EventDetail.class);
+                    displayEventDetail.putExtra("EventID", v.getId());
+                    startActivity(displayEventDetail);
+                }
+            });
             dateEventLinearLayout.addView(row);
         }
     }
-
-    private void getPhotos(String placeID) {
-        String test = "ChIJhZixOD8vdTERod5GWZc9zAc";
-        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(test);
-        photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
-                // Get the list of photos.
-                PlacePhotoMetadataResponse photos = task.getResult();
-                // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
-                PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
-                // Get the first photo in the list.
-                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(0);
-                // Get the attribution text.
-                CharSequence attribution = photoMetadata.getAttributions();
-                // Get a full-size bitmap for the photo.
-                Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getPhoto(photoMetadata);
-                photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
-                    @Override
-                    public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
-                        PlacePhotoResponse photo = task.getResult();
-                        resultBmp = photo.getBitmap();
-                    }
-                });
-                photoMetadataBuffer.release();
-            }
-        });
-    }
-
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
-    }
-
 }
