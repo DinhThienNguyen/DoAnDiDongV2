@@ -45,6 +45,10 @@ public class Event {
     }
 
     // Set methods
+    public void setId(int _id) {
+        id = _id;
+    }
+
     public void setDayid(int _dayid) {
         dayid = _dayid;
     }
@@ -90,7 +94,9 @@ public class Event {
     }
 
     // Get methods
-    public int getId(){return id;}
+    public int getId() {
+        return id;
+    }
 
     public int getDayid() {
         return dayid;

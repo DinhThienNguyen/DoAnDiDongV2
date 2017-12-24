@@ -41,6 +41,9 @@ public class DateDetailActivity extends AppCompatActivity {
     private GeoDataClient mGeoDataClient;
     private Bitmap resultBmp;
     private int i;
+    private int dayID;
+    private boolean resumeHasRun = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,13 +69,32 @@ public class DateDetailActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
                 Intent addDateEvent = new Intent(DateDetailActivity.this, AddDateEventActivity.class);
                 addDateEvent.putExtra("Date", dateTextView.getText());
+                addDateEvent.putExtra("actionFlag", "create");
                 startActivity(addDateEvent);
             }
         });
 
+
+        dayID = db.addDate(date);
+        loadDayEvent(dayID);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!resumeHasRun) {
+            resumeHasRun = true;
+            return;
+        }
+        loadDayEvent(dayID);
+    }
+
+    private void loadDayEvent(int dayId){
+        if(dateEventLinearLayout.getChildCount()>1){
+            dateEventLinearLayout.removeViewsInLayout(1, dateEventLinearLayout.getChildCount());
+        }
         Event event = new Event();
-        int id = db.addDate(date);
-        event.setDayid(id);
+        event.setDayid(dayId);
         dateEvents = db.getEvent(event);
 
         for (i = 0; i < dateEvents.size(); i++) {
@@ -85,15 +107,14 @@ public class DateDetailActivity extends AppCompatActivity {
             TextView time = (TextView) row.findViewById(R.id.eventTimeFragmentTextView);
             time.setText(temp.getStarttime() + " - " + temp.getEndtime());
             TextView location = (TextView) row.findViewById(R.id.eventLocationFragmentTextView);
-            if(!temp.getLocationname().equals("")){
-                if(!temp.getLocationaddress().equals("")){
+            if (!temp.getLocationname().equals("")) {
+                if (!temp.getLocationaddress().equals("")) {
                     location.setText(temp.getLocationname() + ", " + temp.getLocationaddress());
-                }
-                else{
+                } else {
                     location.setText(temp.getLocationname());
                 }
-            }else {
-                if(!temp.getLocationaddress().equals("")){
+            } else {
+                if (!temp.getLocationaddress().equals("")) {
                     location.setText(temp.getLocationaddress());
                 }
             }

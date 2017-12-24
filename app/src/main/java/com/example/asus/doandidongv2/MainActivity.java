@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
                 Intent addDateEvent = new Intent(MainActivity.this, AddDateEventActivity.class);
                 addDateEvent.putExtra("Date", "");
+                addDateEvent.putExtra("actionFlag", "create");
                 startActivity(addDateEvent);
             }
         });

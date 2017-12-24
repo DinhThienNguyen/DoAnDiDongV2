@@ -5,11 +5,13 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -104,6 +106,8 @@ public class AddDateEventActivity extends AppCompatActivity {
     private String locationId;
     private Bitmap locationImage;
     GeoDataClient mGeoDataClient;
+    private String actionFlag;
+    private int incomingEventId;
     int mYear;
     int mMonth;
     int mDay;
@@ -151,35 +155,6 @@ public class AddDateEventActivity extends AppCompatActivity {
 
         eventAttachmentItemLLayoutArray = new ArrayList<LinearLayout>();
         eventAttachmentItemLLayoutHArray = new ArrayList<LinearLayout>();
-
-        final Calendar c = Calendar.getInstance();
-        //get the date information from previous activity
-        Intent incomingDateFromCalendar = getIntent();
-        final String date = incomingDateFromCalendar.getStringExtra("Date");
-        if (date.equals("")) {
-            // Get Current Date
-
-            mYear = c.get(Calendar.YEAR);
-            mMonth = c.get(Calendar.MONTH) + 1;
-            mDay = c.get(Calendar.DAY_OF_MONTH);
-            dateButton.setVisibility(View.VISIBLE);
-            dateButton.setText(mDay + "/" + mMonth + "/" + mYear);
-        } else {
-            dateButton.setText(date);
-        }
-        dateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                datePicker();
-            }
-        });
-
-        mHour = c.get(Calendar.HOUR_OF_DAY);
-        mMinute = c.get(Calendar.MINUTE);
-        eventStartTimeButton.setText(mHour + ":" + mMinute);
-        mMinute += 30;
-        convertMinuteToHour();
-        eventEndTimeButton.setText(mHour + ":" + mMinute);
 
         eventNotifyTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -280,6 +255,13 @@ public class AddDateEventActivity extends AppCompatActivity {
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
+            }
+        });
+
+        dateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                datePicker();
             }
         });
 
@@ -430,6 +412,34 @@ public class AddDateEventActivity extends AppCompatActivity {
         });
         imageAttachmentIds = "";
         phoneContactIds = "";
+
+        Intent incomingInfo = getIntent();
+        final String date = incomingInfo.getStringExtra("Date");
+        actionFlag = incomingInfo.getStringExtra("actionFlag");
+        incomingEventId = incomingInfo.getIntExtra("eventID",-1);
+
+        if(actionFlag.equals("create")){
+            final Calendar c = Calendar.getInstance();
+            //get the date information from previous activity
+            if (date.equals("")) {
+                // Get Current Date
+                mYear = c.get(Calendar.YEAR);
+                mMonth = c.get(Calendar.MONTH) + 1;
+                mDay = c.get(Calendar.DAY_OF_MONTH);
+                dateButton.setVisibility(View.VISIBLE);
+                dateButton.setText(mDay + "/" + mMonth + "/" + mYear);
+            } else {
+                dateButton.setText(date);
+            }
+            mHour = c.get(Calendar.HOUR_OF_DAY);
+            mMinute = c.get(Calendar.MINUTE);
+            eventStartTimeButton.setText(mHour + ":" + mMinute);
+            mMinute += 30;
+            convertMinuteToHour();
+            eventEndTimeButton.setText(mHour + ":" + mMinute);
+        }else if(actionFlag.equals("update")){
+            loadExistingEvent(incomingEventId);
+        }
     }
 
     @Override
@@ -444,83 +454,56 @@ public class AddDateEventActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // action with ID action_save_event was selected
             case R.id.action_save_event:
-                Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
-                        .show();
-                Event newEvent = new Event();
-                newEvent.setDayid(db.addDate(dateButton.getText().toString()));
-                if (!TextUtils.isEmpty(eventNameEditText.getText())) {
-                    newEvent.setTitle(eventNameEditText.getText().toString());
+                saveEvent();
+                if(actionFlag.equals("create")){
+                    Intent newEventSaved = new Intent(AddDateEventActivity.this, DateDetailActivity.class);
+                    newEventSaved.putExtra("Date", dateButton.getText());
+                    newEventSaved.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(newEventSaved);
+                }else if(actionFlag.equals("update")){
+                    Intent updatedEvent = new Intent(AddDateEventActivity.this, EventDetail.class);
+                    updatedEvent.putExtra("EventID", incomingEventId);
+                    updatedEvent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(updatedEvent);
                 }
-                for (int i = 0; i < eventAttachmentCount; i++) {
-                    LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(i);
-                    TextView nextTextView = (TextView) nextLayout.getChildAt(0);
-                    if (nextTextView.getText().equals("Hình ảnh")) {
-                        imageAttachmentIds += nextTextView.getId() + " ";
-                    } else {
-                        if (nextTextView.getText().equals("Số điện thoại")) {
-                            phoneContactIds += nextTextView.getId() + " ";
-                        }
-                    }
-                }
-                newEvent.setImageattachmentid(imageAttachmentIds.trim());
-                newEvent.setPhonecontactid(phoneContactIds.trim());
-                if (!TextUtils.isEmpty(locationId)) {
-                    newEvent.setLocationid(locationId);
-                    db.addLocationImage(locationId, locationImage);
-                }
-                if (!TextUtils.isEmpty(eventLocationEditText.getText())) {
-                    newEvent.setLocationname(eventLocationEditText.getText().toString());
-                }
-                if (!TextUtils.isEmpty(eventLocationAddressTextView.getText())) {
-                    newEvent.setLocationaddress(eventLocationAddressTextView.getText().toString());
-                }
-                String starttime[] = eventStartTimeButton.getText().toString().split(":");
-                String endtime[] = eventEndTimeButton.getText().toString().split(":");
-                if(Integer.parseInt(starttime[0]) == Integer.parseInt(endtime[0])){
-                    if(Integer.parseInt(starttime[1]) >= Integer.parseInt(endtime[1])){
-                        Toast.makeText(getApplicationContext(), "Thời gian bắt đầu của sự kiện phải nhỏ hơn thời gian kết thúc",
-                                Toast.LENGTH_LONG).show();
-                        return false;
-                    }
-                }
-                newEvent.setStarttime(eventStartTimeButton.getText().toString());
-                newEvent.setEndtime(eventEndTimeButton.getText().toString());
-
-                if (!TextUtils.isEmpty(eventDescriptionEditText.getText())) {
-                    newEvent.setDescription(eventDescriptionEditText.getText().toString());
-                }
-                if (!eventNotifyTimeButton.getText().equals(R.string.no_notification)) {
-                    switch (eventNotifyTimeButton.getText().toString()) {
-                        case "Tại thòi gian bắt đầu sự kiện":
-                            newEvent.setNotifytime(0);
-                            break;
-
-                        case "Trước 10 phút":
-                            newEvent.setNotifytime(10);
-                            break;
-
-                        case "Trước 30 phút":
-                            newEvent.setNotifytime(30);
-                            break;
-
-                        default:
-                            String result[] = eventNotifyTimeButton.getText().toString().split(" ");
-                            newEvent.setNotifytime(Integer.parseInt(result[1]));
-                            break;
-                    }
-                } else {
-                    newEvent.setNotifytime(-1);
-                }
-                db.addEvent(newEvent);
-                Intent addDateEvent = new Intent(AddDateEventActivity.this, DateDetailActivity.class);
-                addDateEvent.putExtra("Date", dateButton.getText());
-                startActivity(addDateEvent);
+                finish();
                 break;
             default:
                 break;
         }
-
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Write your code here
+        if(actionFlag.equals("create")) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(AddDateEventActivity.this);
+            builder.setMessage(R.string.stop_modifying_event);
+
+            builder.setPositiveButton(R.string.keep_editing, null);
+
+            builder.setNegativeButton(R.string.discard_changes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+            builder.show();
+        }else if(actionFlag.equals("update")){
+            AlertDialog.Builder builder = new AlertDialog.Builder(AddDateEventActivity.this);
+            builder.setMessage(R.string.stop_creating_event);
+
+            builder.setPositiveButton(R.string.keep_editing, null);
+
+            builder.setNegativeButton(R.string.discard_changes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+            builder.show();
+        }
     }
 
     @Override
@@ -597,7 +580,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         final TextView itemNameTextView = new TextView(getApplicationContext());
         itemNameTextView.setWidth(800);
         itemNameTextView.setText("Hình ảnh");
-        itemNameTextView.setTextSize(19);
+        itemNameTextView.setTextSize(18);
         itemNameTextView.setId(imageId);
         final Button button = new Button(getApplicationContext());
         button.setText("Xoá");
@@ -605,29 +588,50 @@ public class AddDateEventActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int deletedView = button.getId();
-                Log.d("myTag", "Button" + deletedView + "is being deleted. eventAttachmentCount: " + eventAttachmentCount);
-                button.setId(0);
-                eventAttachmentLinearLayout.removeViewAt(1 + deletedView);
-                db.deleteImageAttachment(itemNameTextView.getId());
-                for (int i = deletedView; i < eventAttachmentCount; i++) {
-                    LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(deletedView);
-                    Button deletedButton = (Button) nextLayout.getChildAt(1);
-                    Log.d("myTag", "Button" + deletedButton.getId() + "is being moved.");
-                    deletedButton.setId(i);
-                    Log.d("myTag", "Button" + i + "is now Button" + deletedButton.getId() + ".");
-                }
-                Log.d("myTag", "eventAttachmentItemLLayoutHArray: " + eventAttachmentItemLLayoutHArray.size());
-                eventAttachmentItemLLayoutHArray.remove(deletedView - 1);
-                Log.d("myTag", "eventAttachmentItemLLayoutHArray: " + eventAttachmentItemLLayoutHArray.size());
+                final AlertDialog dialog = new AlertDialog.Builder(AddDateEventActivity.this)
+                        .setTitle("Choose one")
+                        .show();
+                dialog.setContentView(R.layout.custom_yes_no_dialog);
 
-                Log.d("myTag", "eventAttachmentItemLLayoutArray: " + eventAttachmentItemLLayoutArray.size());
-                eventAttachmentItemLLayoutArray.remove(deletedView - 1);
-                Log.d("myTag", "eventAttachmentItemLLayoutArray: " + eventAttachmentItemLLayoutArray.size());
+                TextView question = (TextView) dialog.findViewById(R.id.confirmationTextView);
+                question.setText("Bạn có chắc chắn muốn xoá?");
 
-                eventAttachmentCount--;
-                Log.d("myTag", "eventAttachmentCount: " + eventAttachmentCount);
-                totalViewCount--;
+                dialog.findViewById(R.id.yesNoDialogAcceptButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        int deletedView = button.getId();
+                        Log.d("myTag", "Button" + deletedView + "is being deleted. eventAttachmentCount: " + eventAttachmentCount);
+                        button.setId(0);
+                        eventAttachmentLinearLayout.removeViewAt(1 + deletedView);
+                        db.deleteImageAttachment(itemNameTextView.getId());
+                        for (int i = deletedView; i < eventAttachmentCount; i++) {
+                            LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(deletedView);
+                            Button deletedButton = (Button) nextLayout.getChildAt(1);
+                            Log.d("myTag", "Button" + deletedButton.getId() + "is being moved.");
+                            deletedButton.setId(i);
+                            Log.d("myTag", "Button" + i + "is now Button" + deletedButton.getId() + ".");
+                        }
+                        Log.d("myTag", "eventAttachmentItemLLayoutHArray: " + eventAttachmentItemLLayoutHArray.size());
+                        eventAttachmentItemLLayoutHArray.remove(deletedView - 1);
+                        Log.d("myTag", "eventAttachmentItemLLayoutHArray: " + eventAttachmentItemLLayoutHArray.size());
+
+                        Log.d("myTag", "eventAttachmentItemLLayoutArray: " + eventAttachmentItemLLayoutArray.size());
+                        eventAttachmentItemLLayoutArray.remove(deletedView - 1);
+                        Log.d("myTag", "eventAttachmentItemLLayoutArray: " + eventAttachmentItemLLayoutArray.size());
+
+                        eventAttachmentCount--;
+                        Log.d("myTag", "eventAttachmentCount: " + eventAttachmentCount);
+                        totalViewCount--;
+                    }
+                });
+
+                dialog.findViewById(R.id.yesNoDialogDeclineButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
             }
         });
 
@@ -725,10 +729,15 @@ public class AddDateEventActivity extends AppCompatActivity {
         PhoneContact newPhoneContact = new PhoneContact(contactName, contactNumber);
         int id = db.addPhoneContact(newPhoneContact);
 
+        addPhoneContact(contactName, contactNumber, id);
+    }
+
+    private void addPhoneContact(String contactName, String contactNumber, int id) {
         final TextView itemNameTextView = new TextView(getApplicationContext());
         itemNameTextView.setWidth(800);
         itemNameTextView.setText("Số điện thoại");
-        itemNameTextView.setTextSize(19);
+        itemNameTextView.setTextSize(18);
+        itemNameTextView.setTextColor(Color.parseColor("#000000"));
         itemNameTextView.setId(id);
         final Button button = new Button(getApplicationContext());
         button.setText("Xoá");
@@ -737,26 +746,48 @@ public class AddDateEventActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int deletedView = button.getId();
-                button.setId(0);
-                eventAttachmentLinearLayout.removeViewAt(1 + deletedView);
-                db.deletePhoneContact(itemNameTextView.getId());
+                final AlertDialog dialog = new AlertDialog.Builder(AddDateEventActivity.this)
+                        .setTitle("Choose one")
+                        .show();
+                dialog.setContentView(R.layout.custom_yes_no_dialog);
 
-                for (int i = deletedView; i < eventAttachmentCount; i++) {
-                    LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(deletedView);
-                    Button deletedButton = (Button) nextLayout.getChildAt(1);
-                    deletedButton.setId(i);
-                }
+                TextView question = (TextView) dialog.findViewById(R.id.confirmationTextView);
+                question.setText("Bạn có chắc chắn muốn xoá?");
 
-                eventAttachmentItemLLayoutArray.remove(deletedView - 1);
-                eventAttachmentItemLLayoutHArray.remove(deletedView - 1);
-                eventAttachmentCount--;
-                totalViewCount--;
+                dialog.findViewById(R.id.yesNoDialogAcceptButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        int deletedView = button.getId();
+                        button.setId(0);
+                        eventAttachmentLinearLayout.removeViewAt(1 + deletedView);
+                        db.deletePhoneContact(itemNameTextView.getId());
+
+                        for (int i = deletedView; i < eventAttachmentCount; i++) {
+                            LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(deletedView);
+                            Button deletedButton = (Button) nextLayout.getChildAt(1);
+                            deletedButton.setId(i);
+                        }
+
+                        eventAttachmentItemLLayoutArray.remove(deletedView - 1);
+                        eventAttachmentItemLLayoutHArray.remove(deletedView - 1);
+                        eventAttachmentCount--;
+                        totalViewCount--;
+                    }
+                });
+
+                dialog.findViewById(R.id.yesNoDialogDeclineButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
             }
         });
 
         TextView contactNameTextView = new TextView(getApplicationContext());
-        contactNameTextView.setTextSize(19);
+        contactNameTextView.setTextSize(16);
+        contactNameTextView.setTextColor(Color.parseColor("#000000"));
         contactNameTextView.setText(contactName);
 
         LinearLayout LLayout = new LinearLayout(getApplicationContext());
@@ -766,7 +797,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventAttachmentItemLLayoutHArray.add(LLayout);
 
         TextView contactPhoneNumberTextView = new TextView(getApplicationContext());
-        contactPhoneNumberTextView.setTextSize(17);
+        contactPhoneNumberTextView.setTextSize(16);
         contactPhoneNumberTextView.setText(contactNumber);
 
         LinearLayout VLLayout = new LinearLayout(getApplicationContext());
@@ -819,7 +850,6 @@ public class AddDateEventActivity extends AppCompatActivity {
             }
         }
     }
-
 
     private File createImageFile() throws IOException {
         // Create an image file name
@@ -892,14 +922,14 @@ public class AddDateEventActivity extends AppCompatActivity {
                         PlacePhotoResponse photo = task.getResult();
                         locationImage = photo.getBitmap();
                         eventLocationImageView.setImageBitmap(locationImage);
+                        eventLocationImageView.setVisibility(View.VISIBLE);
                     }
                 });
                 photoMetadataBuffer.release();
             }
         });
-        eventLocationImageView.setVisibility(View.VISIBLE);
-    }
 
+    }
 
     private void timePicker(final int whichTime) {
         // Get Current Time
@@ -938,6 +968,7 @@ public class AddDateEventActivity extends AppCompatActivity {
 
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        monthOfYear++;
                         dateButton.setText(dayOfMonth + "/" + monthOfYear + "/" + year);
                     }
                 }, mYear, mMonth, mDay);
@@ -958,5 +989,129 @@ public class AddDateEventActivity extends AppCompatActivity {
         }
     }
 
+    private void saveEvent(){
+        Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
+                .show();
+        Event newEvent = new Event();
+        newEvent.setDayid(db.addDate(dateButton.getText().toString()));
+        if (!TextUtils.isEmpty(eventNameEditText.getText())) {
+            newEvent.setTitle(eventNameEditText.getText().toString());
+        }
+        for (int i = 0; i < eventAttachmentCount; i++) {
+            LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(i);
+            TextView nextTextView = (TextView) nextLayout.getChildAt(0);
+            if (nextTextView.getText().equals("Hình ảnh")) {
+                imageAttachmentIds += nextTextView.getId() + " ";
+            } else {
+                if (nextTextView.getText().equals("Số điện thoại")) {
+                    phoneContactIds += nextTextView.getId() + " ";
+                }
+            }
+        }
+        newEvent.setImageattachmentid(imageAttachmentIds.trim());
+        newEvent.setPhonecontactid(phoneContactIds.trim());
+        if (!TextUtils.isEmpty(locationId)) {
+            newEvent.setLocationid(locationId);
+            db.addLocationImage(locationId, locationImage);
+        }
+        if (!TextUtils.isEmpty(eventLocationEditText.getText())) {
+            newEvent.setLocationname(eventLocationEditText.getText().toString());
+        }
+        if (!TextUtils.isEmpty(eventLocationAddressTextView.getText())) {
+            newEvent.setLocationaddress(eventLocationAddressTextView.getText().toString());
+        }
+        String starttime[] = eventStartTimeButton.getText().toString().split(":");
+        String endtime[] = eventEndTimeButton.getText().toString().split(":");
+        if (Integer.parseInt(starttime[0]) == Integer.parseInt(endtime[0])) {
+            if (Integer.parseInt(starttime[1]) >= Integer.parseInt(endtime[1])) {
+                Toast.makeText(getApplicationContext(), "Thời gian bắt đầu của sự kiện phải nhỏ hơn thời gian kết thúc",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+        newEvent.setStarttime(eventStartTimeButton.getText().toString());
+        newEvent.setEndtime(eventEndTimeButton.getText().toString());
+
+        if (!TextUtils.isEmpty(eventDescriptionEditText.getText())) {
+            newEvent.setDescription(eventDescriptionEditText.getText().toString());
+        }
+        if (!eventNotifyTimeButton.getText().toString().equals(getString(R.string.no_notification))) {
+            switch (eventNotifyTimeButton.getText().toString()) {
+                case "Tại thòi gian bắt đầu sự kiện":
+                    newEvent.setNotifytime(0);
+                    break;
+
+                case "Trước 10 phút":
+                    newEvent.setNotifytime(10);
+                    break;
+
+                case "Trước 30 phút":
+                    newEvent.setNotifytime(30);
+                    break;
+
+                default:
+                    String result[] = eventNotifyTimeButton.getText().toString().split(" ");
+                    newEvent.setNotifytime(Integer.parseInt(result[1]));
+                    break;
+            }
+        } else {
+            newEvent.setNotifytime(-1);
+        }
+
+        if(actionFlag.equals("create")){
+            db.addEvent(newEvent);
+        }else if(actionFlag.equals("update")){
+            newEvent.setId(incomingEventId);
+            db.updateEvent(newEvent);
+        }
+    }
+
+    private void loadExistingEvent(int id) {
+        Event event = db.getEvent(id);
+        if (!event.getTitle().equals("Không có tiêu đề")) {
+            eventNameEditText.setText(event.getTitle());
+        }
+        eventStartTimeButton.setText(event.getStarttime());
+        eventEndTimeButton.setText(event.getEndtime());
+        switch (event.getNotifytime()) {
+            case 0:
+                eventNotifyTimeButton.setText(getString(R.string.at_event_time));
+                break;
+
+            case -1:
+                eventNotifyTimeButton.setText(getString(R.string.no_notification));
+                break;
+
+            default:
+                eventNotifyTimeButton.setText("Trước " + event.getNotifytime() + " phút");
+                break;
+        }
+        if (!event.getDescription().equals("")) {
+            eventDescriptionEditText.setText(event.getDescription());
+        }
+        if (!event.getLocationname().equals("")) {
+            eventLocationEditText.setText(event.getLocationname());
+        }
+        if (!event.getLocationaddress().equals("")) {
+            eventLocationAddressTextView.setText(event.getLocationaddress());
+        }
+        if (!event.getLocationid().equals("")) {
+            eventLocationImageView.setImageBitmap(db.getLocationImage(event.getLocationid()));
+            eventLocationImageView.setVisibility(View.VISIBLE);
+        }
+        if (!event.getImageattachmentid().equals("")) {
+            String images[] = event.getImageattachmentid().split(" ");
+            for (int i = 0; i < images.length; i++) {
+                addImageAttachment(db.getImageAttachment(Integer.parseInt(images[i])), Integer.parseInt(images[i]));
+            }
+        }
+        if (!event.getPhonecontactid().equals("")) {
+            String contacts[] = event.getPhonecontactid().split(" ");
+            for (int i = 0; i < contacts.length; i++) {
+                PhoneContact contact = db.getPhoneContact(Integer.parseInt(contacts[i]));
+                addPhoneContact(contact.getContactName(), contact.getContactNumber(), Integer.parseInt(contacts[i]));
+            }
+        }
+    }
 }
 

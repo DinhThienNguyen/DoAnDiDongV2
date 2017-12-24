@@ -6,10 +6,12 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.Image;
 import android.net.Uri;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -28,6 +30,8 @@ public class EventDetail extends AppCompatActivity {
 
     private DatabaseHelper db;
     private Context mContext;
+    private Event event;
+    private int idEvent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,9 +69,9 @@ public class EventDetail extends AppCompatActivity {
         });
 
         Intent eventID = getIntent();
-        int id = eventID.getIntExtra("EventID", -1);
-        if (id != -1) {
-            Event event = db.getEvent(id);
+        idEvent = eventID.getIntExtra("EventID", -1);
+        if (idEvent != -1) {
+            event = db.getEvent(idEvent);
 
             eventTitleTextView.setText(event.getTitle());
             String date[] = db.getDate(event.getDayid()).split("/");
@@ -162,11 +166,11 @@ public class EventDetail extends AppCompatActivity {
 
                     TextView contactName = new TextView(getApplicationContext());
                     contactName.setTextSize(15);
-                    contactName.setTextColor(Color.parseColor("#000"));
+                    contactName.setTextColor(Color.parseColor("#000000"));
 
                     TextView contactNumber = new TextView(getApplicationContext());
                     contactNumber.setTextSize(15);
-                    contactNumber.setTextColor(Color.parseColor("#000"));
+                    contactNumber.setTextColor(Color.parseColor("#000000"));
 
                     PhoneContact phoneContact = db.getPhoneContact(Integer.parseInt(contacts[i]));
                     contactName.setText(phoneContact.getContactName());
@@ -175,7 +179,7 @@ public class EventDetail extends AppCompatActivity {
 
                     Button callButton = new Button(getApplicationContext());
                     callButton.setTextSize(15);
-                    callButton.setTextColor(Color.parseColor("#000"));
+                    callButton.setTextColor(Color.parseColor("#000000"));
                     callButton.setText("Gọi");
                     callButton.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -197,5 +201,46 @@ public class EventDetail extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.event_detail_overflow_menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.deleteEventAction:
+                final AlertDialog dialog = new AlertDialog.Builder(EventDetail.this)
+                        .setTitle("Choose one")
+                        .show();
+                dialog.setContentView(R.layout.custom_yes_no_dialog);
+
+                dialog.findViewById(R.id.yesNoDialogAcceptButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        db.deleteEvent(event.getId());
+                        Intent refreshDateDetail = new Intent(EventDetail.this, DateDetailActivity.class);
+                        refreshDateDetail.putExtra("Date", db.getDate(event.getDayid()));
+                        refreshDateDetail.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(refreshDateDetail);
+                        finish();
+                    }
+                });
+
+                dialog.findViewById(R.id.yesNoDialogDeclineButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+                break;
+
+            case R.id.modifyEventAction:
+                Intent updateEvent = new Intent(EventDetail.this, AddDateEventActivity.class);
+                updateEvent.putExtra("actionFlag", "update");
+                updateEvent.putExtra("eventID", idEvent);
+                startActivity(updateEvent);
+                finish();
+                break;
+        }
+        return true;
     }
 }
