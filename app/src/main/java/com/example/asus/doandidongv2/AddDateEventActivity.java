@@ -108,6 +108,7 @@ public class AddDateEventActivity extends AppCompatActivity {
     GeoDataClient mGeoDataClient;
     private String actionFlag;
     private int incomingEventId;
+    private int source;
     int mYear;
     int mMonth;
     int mDay;
@@ -463,7 +464,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                 }else if(actionFlag.equals("update")){
                     Intent updatedEvent = new Intent(AddDateEventActivity.this, EventDetail.class);
                     updatedEvent.putExtra("EventID", incomingEventId);
-                    updatedEvent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    //updatedEvent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(updatedEvent);
                 }
                 finish();
@@ -1068,6 +1069,7 @@ public class AddDateEventActivity extends AppCompatActivity {
 
     private void loadExistingEvent(int id) {
         Event event = db.getEvent(id);
+        dateButton.setText(db.getDate(event.getDayid()));
         if (!event.getTitle().equals("Không có tiêu đề")) {
             eventNameEditText.setText(event.getTitle());
         }
@@ -1094,8 +1096,10 @@ public class AddDateEventActivity extends AppCompatActivity {
         }
         if (!event.getLocationaddress().equals("")) {
             eventLocationAddressTextView.setText(event.getLocationaddress());
+            eventLocationAddressTextView.setVisibility(View.VISIBLE);
         }
         if (!event.getLocationid().equals("")) {
+            locationId = event.getLocationid();
             eventLocationImageView.setImageBitmap(db.getLocationImage(event.getLocationid()));
             eventLocationImageView.setVisibility(View.VISIBLE);
         }

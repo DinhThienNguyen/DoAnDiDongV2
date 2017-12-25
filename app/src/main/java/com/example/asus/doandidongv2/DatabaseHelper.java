@@ -27,7 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String LOG = "DatabaseHelper";
 
     // Database Version
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 6;
 
     // Database Name
     private static final String DATABASE_NAME = "CalendarManager";
@@ -125,6 +125,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHONE_CONTACTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_IMAGEATTACHMENTS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCATIONIMAGE);
         onCreate(db);
     }
 
@@ -647,6 +648,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
 
         ContentValues newEventValue = new ContentValues();
+        newEventValue.put(KEY_ID, event.getId());
         newEventValue.put(KEY_DAY_ID, event.getDayid());
         newEventValue.put(KEY_IMAGEATTACHMENT_ID, event.getImageattachmentid());
         newEventValue.put(KEY_PHONECONTACTS_ID, event.getPhonecontactid());
@@ -659,7 +661,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newEventValue.put(KEY_DESCRIPTION, event.getDescription());
         newEventValue.put(KEY_NOTIFY_TIME, event.getNotifytime());
 
-        db.update(TABLE_EVENTS, newEventValue, KEY_ID + "=" + event.getId(), null);
+        db.update(TABLE_EVENTS, newEventValue, String.format("%s = ?", KEY_ID), new String[]{Integer.toString(event.getId())});
+
+        int count;
+        String sql = "SELECT COUNT(*) FROM " + TABLE_DATES;
+        Cursor cursor = db.rawQuery(sql, null);
+        cursor.moveToFirst();
+        count = cursor.getInt(0);
+
+        sql = "SELECT COUNT(*) FROM " + TABLE_EVENTS;
+        cursor = db.rawQuery(sql, null);
+        cursor.moveToFirst();
+        count = cursor.getInt(0);
+
+        cursor.close();
         db.close();
     }
 
@@ -667,7 +682,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         List<Event> Events = new ArrayList<Event>();
 
         SQLiteDatabase db = getReadableDatabase();
-        String sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + " = " + event.getDayid();
+        int count;
+
+        String sql = "SELECT COUNT(*) FROM " + TABLE_DATES;
+        Cursor cursor = db.rawQuery(sql, null);
+        cursor.moveToFirst();
+        count = cursor.getInt(0);
+
+        sql = "SELECT COUNT(*) FROM " + TABLE_EVENTS;
+        cursor = db.rawQuery(sql, null);
+        cursor.moveToFirst();
+        count = cursor.getInt(0);
+        cursor.close();
+
+        sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + " = " + event.getDayid();
 
         Cursor reportCursor = db.rawQuery(sql, null);
 
