@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CalendarView;
 
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
 
     private CalendarView mCalendarView;

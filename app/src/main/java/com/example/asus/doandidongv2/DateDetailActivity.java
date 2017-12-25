@@ -90,9 +90,7 @@ public class DateDetailActivity extends AppCompatActivity {
     }
 
     private void loadDayEvent(int dayId){
-        if(dateEventLinearLayout.getChildCount()>1){
-            dateEventLinearLayout.removeViewsInLayout(1, dateEventLinearLayout.getChildCount());
-        }
+        dateEventLinearLayout.removeAllViews();
         Event event = new Event();
         event.setDayid(dayId);
         dateEvents = db.getEvent(event);
