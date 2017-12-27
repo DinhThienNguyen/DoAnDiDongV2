@@ -74,7 +74,7 @@ public class DateDetailActivity extends AppCompatActivity {
             }
         });
 
-
+        // need to getDayId here
         dayID = db.addDate(date);
         loadDayEvent(dayID);
     }

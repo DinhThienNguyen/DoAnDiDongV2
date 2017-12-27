@@ -15,11 +15,17 @@
     <string name="stop_creating_event">Bạn có muốn huỷ các thay đổi?</string>
     <string name="keep_editing">Tiếp tục chỉnh sửa</string>
     <string name="discard_changes">Huỷ các thay đổi</string>
+    <string name="modify_color">Đổi màu</string>
+    <string name="event_calendar_color">Sự kiện</string>
+    <string name="current_day_calendar_color">Ngày hiện tại</string>
+    <string name="selected_day_calendar_color">Ngày đang chọn</string>
+    <string name="main_calendar_color">Màu nền lịch</string>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
     <string-array name="event_items">
         <item>Chọn 1 đính kèm</item>
         <item>Số điện thoại</item>
         <item>Hình ảnh</item>
-        <item>Trang web</item>
     </string-array>
     <string name="action_save">Lưu</string>
     <string name="title_activity_date_detail">Sự kiện trong ngày</string>

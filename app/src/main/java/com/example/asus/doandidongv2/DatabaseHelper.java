@@ -27,7 +27,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String LOG = "DatabaseHelper";
 
     // Database Version
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 9;
 
     // Database Name
     private static final String DATABASE_NAME = "CalendarManager";
@@ -38,6 +38,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_PHONE_CONTACTS = "PhoneContacts";
     private static final String TABLE_EVENTS = "Events";
     private static final String TABLE_LOCATIONIMAGE = "LocationImage";
+    private static final String TABLE_MISCELLANEOUS = "miscellaneous";
 
     // Common column names
     private static final String KEY_ID = "id";
@@ -55,6 +56,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // LOCATIONIMAGE Table - column names
     private static final String KEY_IMAGE_ID = "locationid";
     private static final String KEY_LOCATIONIMG_PATH = "imgpath";
+
+    // MISCELLANEOUS Table - column names
+    private static final String KEY_EVENT_COLOR = "eventcolor";
+    private static final String KEY_CURRENT_DAY_COLOR = "currentdaycolor";
+    private static final String KEY_SELECTED_DAY_COLOR = "selecteddaycolor";
+    private static final String KEY_MAIN_CALENDAR_COLOR = "maincalendarcolor";
 
     // EVENTS Table - collumn names
     private static final String KEY_DAY_ID = "dateid";
@@ -89,6 +96,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + TABLE_LOCATIONIMAGE + "(" + KEY_IMAGE_ID + " TEXT,"
             + KEY_LOCATIONIMG_PATH + " TEXT)";
 
+    // Miscellaneous table create statement
+    private static final String CREATE_TABLE_MISCELLANEOUS = "CREATE TABLE "
+            + TABLE_MISCELLANEOUS + " ( " + KEY_EVENT_COLOR + " TEXT,"
+            + KEY_CURRENT_DAY_COLOR + " TEXT,"
+            + KEY_SELECTED_DAY_COLOR + " TEXT,"
+            + KEY_MAIN_CALENDAR_COLOR + " TEXT)";
+
     // Events table create statement
     private static final String CREATE_TABLE_EVENTS = "CREATE TABLE "
             + TABLE_EVENTS + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
@@ -117,6 +131,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_IMAGEATTACHMENTS);
         db.execSQL(CREATE_TABLE_PHONECONTACTS);
         db.execSQL(CREATE_TABLE_LOCATIONIMAGE);
+        db.execSQL(CREATE_TABLE_MISCELLANEOUS);
     }
 
     @Override
@@ -126,6 +141,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PHONE_CONTACTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_IMAGEATTACHMENTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCATIONIMAGE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MISCELLANEOUS);
         onCreate(db);
     }
 
@@ -540,6 +556,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
+    public int getDayId(String date) {
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_DATES + " WHERE " + KEY_DAY + " = ?";
+
+        Cursor cursor = db.rawQuery(sql, new String[]{date});
+        if (cursor.moveToFirst()) {
+            int result = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+            cursor.close();
+            db.close();
+            return result;
+        }
+        cursor.close();
+        db.close();
+        return -1;
+    }
+
     // Event Table methods
 
     public int addEvent(Event event) {
@@ -608,6 +640,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             db = getWritableDatabase();
             db.delete(TABLE_EVENTS, KEY_ID + "=?", new String[]{Integer.toString(id)});
+
+            int dayID = cursor.getInt(cursor.getColumnIndex(KEY_DAY_ID));
+            sql = "SELECT * FROM" + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + "=" + dayID;
+            cursor = db.rawQuery(sql, null);
+            if (!cursor.moveToFirst()) {
+                db.delete(TABLE_DATES, KEY_ID + "=?", new String[]{Integer.toString(dayID)});
+            }
         }
 
         cursor.close();
@@ -726,4 +765,61 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         reportCursor.close();
         return Events;
     }
+
+    // Miscellaneous Table Methods
+
+    public void addColor() {
+        SQLiteDatabase db = getWritableDatabase();
+
+        String sql = "SELECT * FROM " + TABLE_MISCELLANEOUS + " LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, null);
+        if (!cursor.moveToFirst()) {
+            ContentValues newColor = new ContentValues();
+            String eventColor = "88 136 56";
+            newColor.put(KEY_EVENT_COLOR, eventColor);
+            String currentDayColor = "30 40 100";
+            newColor.put(KEY_CURRENT_DAY_COLOR, currentDayColor);
+            String selectedDayColor = "110 125 212";
+            newColor.put(KEY_SELECTED_DAY_COLOR, selectedDayColor);
+            String mainCalendarColor = "48 63 159";
+            newColor.put(KEY_MAIN_CALENDAR_COLOR, mainCalendarColor);
+
+            db.insert(TABLE_MISCELLANEOUS, null, newColor);
+        }
+        cursor.close();
+        db.close();
+    }
+
+    public void modifyColor(int r, int g, int b, String key) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        String sql = "SELECT " + key + " FROM " + TABLE_MISCELLANEOUS + " LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            String prevColor = cursor.getString(cursor.getColumnIndex(key));
+            String color = r + " " + g + " " + b;
+            ContentValues newEventColor = new ContentValues();
+            newEventColor.put(key, color);
+            db.update(TABLE_MISCELLANEOUS, newEventColor, String.format("%s = ?", key), new String[]{prevColor});
+        }
+        cursor.close();
+        db.close();
+    }
+
+    public String getColor(String key) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        String sql = "SELECT " + key + " FROM " + TABLE_MISCELLANEOUS + " LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            String color = cursor.getString(cursor.getColumnIndex(key));
+            cursor.close();
+            db.close();
+            return color;
+        }
+        db.close();
+        cursor.close();
+        return null;
+    }
+
 }

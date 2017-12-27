@@ -20,6 +20,7 @@ import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -86,10 +87,14 @@ public class AddDateEventActivity extends AppCompatActivity {
     //dynamic controls array for event attachment
     private List<LinearLayout> eventAttachmentItemLLayoutArray;
     private List<LinearLayout> eventAttachmentItemLLayoutHArray;
-    private List<TextView> contactNameTextViewArray;
-    private List<TextView> contactPhongNumberTextViewArray;
 
-    private final int REQUEST_PERMISSION_READ_CONTACTS = 1;
+    private final int REQUEST_PERMISSION_READ_CONTACTS = 5;
+    private final int REQUEST_PERMISSION_READ_EXTERNAL = 6;
+    private final int REQUEST_PERMISSION_READ_EXTERNAL_AFTER_CAMERA = 7;
+    private final int REQUEST_PERMISSION_CAMERA = 8;
+    private final int REQUEST_PERMISSION_LOCATION = 9;
+    private final int REQUEST_PERMISSION_WRITE_EXTERNAL = 10;
+    private final int REQUEST_PERMISSION_NETWORK_STATE = 11;
 
     private static final String TAG = AddDateEventActivity.class.getSimpleName();
     private static final int REQUEST_CODE_PICK_CONTACTS = 1;
@@ -108,7 +113,6 @@ public class AddDateEventActivity extends AppCompatActivity {
     GeoDataClient mGeoDataClient;
     private String actionFlag;
     private int incomingEventId;
-    private int source;
     int mYear;
     int mMonth;
     int mDay;
@@ -286,49 +290,57 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventLocationEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isOnline()) {
-                    try {
-                        Intent placeAutoCompleteIntent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(AddDateEventActivity.this);
-                        startActivityForResult(placeAutoCompleteIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-                    } catch (GooglePlayServicesRepairableException e) {
-                        e.printStackTrace();
-                    } catch (GooglePlayServicesNotAvailableException e) {
-                        e.printStackTrace();
+                if (ContextCompat.checkSelfPermission(AddDateEventActivity.this,
+                        Manifest.permission.ACCESS_NETWORK_STATE) == 0) {
+                    if (isOnline()) {
+                        try {
+                            Intent placeAutoCompleteIntent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(AddDateEventActivity.this);
+                            startActivityForResult(placeAutoCompleteIntent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+                        } catch (GooglePlayServicesRepairableException e) {
+                            e.printStackTrace();
+                        } catch (GooglePlayServicesNotAvailableException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Không có kết nối internet\nNhập địa chỉ thủ công", Toast.LENGTH_LONG).show();
+                        final AlertDialog dialog = new AlertDialog.Builder(AddDateEventActivity.this)
+                                .setTitle("Choose one")
+                                .show();
+                        dialog.setContentView(R.layout.custom_event_location_dialog);
+                        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+
+                        EditText temp = (EditText) dialog.findViewById(R.id.eventLocationNameDialogEditText);
+                        EditText temp1 = (EditText) dialog.findViewById(R.id.eventLocationAddressDialogEditText);
+                        temp.setText(eventLocationEditText.getText());
+                        temp1.setText(eventLocationAddressTextView.getText());
+
+                        dialog.findViewById(R.id.eventLocationConfirm)
+                                .setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        dialog.dismiss();
+                                        EditText temp = (EditText) dialog.findViewById(R.id.eventLocationNameDialogEditText);
+                                        EditText temp1 = (EditText) dialog.findViewById(R.id.eventLocationAddressDialogEditText);
+                                        eventLocationEditText.setText(temp.getText());
+                                        eventLocationAddressTextView.setText(temp1.getText());
+                                        if (!temp1.getText().equals(""))
+                                            eventLocationAddressTextView.setVisibility(View.VISIBLE);
+                                    }
+                                });
+
+                        dialog.findViewById(R.id.eventLocationDecline)
+                                .setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        dialog.dismiss();
+                                    }
+                                });
                     }
-                } else {
-                    Toast.makeText(getApplicationContext(), "Không có kết nối internet\nNhập địa chỉ thủ công", Toast.LENGTH_LONG).show();
-                    final AlertDialog dialog = new AlertDialog.Builder(AddDateEventActivity.this)
-                            .setTitle("Choose one")
-                            .show();
-                    dialog.setContentView(R.layout.custom_event_location_dialog);
-                    dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-
-                    EditText temp = (EditText) dialog.findViewById(R.id.eventLocationNameDialogEditText);
-                    EditText temp1 = (EditText) dialog.findViewById(R.id.eventLocationAddressDialogEditText);
-                    temp.setText(eventLocationEditText.getText());
-                    temp1.setText(eventLocationAddressTextView.getText());
-
-                    dialog.findViewById(R.id.eventLocationConfirm)
-                            .setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    dialog.dismiss();
-                                    EditText temp = (EditText) dialog.findViewById(R.id.eventLocationNameDialogEditText);
-                                    EditText temp1 = (EditText) dialog.findViewById(R.id.eventLocationAddressDialogEditText);
-                                    eventLocationEditText.setText(temp.getText());
-                                    eventLocationAddressTextView.setText(temp1.getText());
-                                    if (!temp1.getText().equals(""))
-                                        eventLocationAddressTextView.setVisibility(View.VISIBLE);
-                                }
-                            });
-
-                    dialog.findViewById(R.id.eventLocationDecline)
-                            .setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    dialog.dismiss();
-                                }
-                            });
+                }
+                else {
+                    ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                            new String[]{Manifest.permission.ACCESS_NETWORK_STATE},
+                            REQUEST_PERMISSION_NETWORK_STATE);
                 }
             }
         });
@@ -354,9 +366,14 @@ public class AddDateEventActivity extends AppCompatActivity {
                     switch (position) {
                         case 1:
                             // nếu đính kèm được chọn là số điện thoại
-                            // using native contacts selection
-                            // Intent.ACTION_PICK = Pick an item from the data, returning what was selected.
-                            startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
+                            if (ContextCompat.checkSelfPermission(AddDateEventActivity.this,
+                                    Manifest.permission.READ_CONTACTS) == 0) {
+                                startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
+                            } else {
+                                ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                                        new String[]{Manifest.permission.READ_CONTACTS},
+                                        REQUEST_PERMISSION_READ_CONTACTS);
+                            }
                             break;
 
                         case 2:
@@ -380,9 +397,17 @@ public class AddDateEventActivity extends AppCompatActivity {
                                         @Override
                                         public void onClick(View v) {
                                             dialog.dismiss();
-                                            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                                            intent.setType("image/*");
-                                            startActivityForResult(intent, REQUEST_CODE_PICK_PHOTOS);
+
+                                            if (ContextCompat.checkSelfPermission(AddDateEventActivity.this,
+                                                    Manifest.permission.READ_EXTERNAL_STORAGE) == 0) {
+                                                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                                                intent.setType("image/*");
+                                                startActivityForResult(intent, REQUEST_CODE_PICK_PHOTOS);
+                                            } else {
+                                                ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                                                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                                        REQUEST_PERMISSION_READ_EXTERNAL);
+                                            }
                                         }
                                     });
 
@@ -392,15 +417,21 @@ public class AddDateEventActivity extends AppCompatActivity {
                                         @Override
                                         public void onClick(View v) {
                                             dialog.dismiss();
-                                            dispatchTakePictureIntent();
+                                            if (ContextCompat.checkSelfPermission(AddDateEventActivity.this,
+                                                    Manifest.permission.CAMERA) == 0 &&
+                                                    ContextCompat.checkSelfPermission(AddDateEventActivity.this,
+                                                            Manifest.permission.READ_EXTERNAL_STORAGE) == 0) {
+                                                dispatchTakePictureIntent();
+                                            } else {
+                                                ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                                                        new String[]{Manifest.permission.CAMERA},
+                                                        REQUEST_PERMISSION_CAMERA);
+                                            }
                                         }
                                     });
 
                             // show dialog on screen
                             //dialog.show();
-                            break;
-                        case 3:
-                            //nếu đính kèm được chọn là hình ảnh (chụp ảnh)
                             break;
                     }
                 }
@@ -417,9 +448,9 @@ public class AddDateEventActivity extends AppCompatActivity {
         Intent incomingInfo = getIntent();
         final String date = incomingInfo.getStringExtra("Date");
         actionFlag = incomingInfo.getStringExtra("actionFlag");
-        incomingEventId = incomingInfo.getIntExtra("eventID",-1);
+        incomingEventId = incomingInfo.getIntExtra("eventID", -1);
 
-        if(actionFlag.equals("create")){
+        if (actionFlag.equals("create")) {
             final Calendar c = Calendar.getInstance();
             //get the date information from previous activity
             if (date.equals("")) {
@@ -438,9 +469,103 @@ public class AddDateEventActivity extends AppCompatActivity {
             mMinute += 30;
             convertMinuteToHour();
             eventEndTimeButton.setText(mHour + ":" + mMinute);
-        }else if(actionFlag.equals("update")){
+        } else if (actionFlag.equals("update")) {
             loadExistingEvent(incomingEventId);
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_PERMISSION_READ_CONTACTS:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(AddDateEventActivity.this, "Cấp quyền thất bại", Toast.LENGTH_SHORT).show();
+                }
+                return;
+
+            case REQUEST_PERMISSION_READ_EXTERNAL:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, REQUEST_CODE_PICK_PHOTOS);
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(AddDateEventActivity.this, "Cấp quyền thất bại", Toast.LENGTH_SHORT).show();
+                }
+                return;
+
+            case REQUEST_PERMISSION_READ_EXTERNAL_AFTER_CAMERA:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            REQUEST_PERMISSION_WRITE_EXTERNAL);
+                    dispatchTakePictureIntent();
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(AddDateEventActivity.this, "Cấp quyền thất bại", Toast.LENGTH_SHORT).show();
+                }
+                return;
+
+            case REQUEST_PERMISSION_WRITE_EXTERNAL:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    dispatchTakePictureIntent();
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(AddDateEventActivity.this, "Cấp quyền thất bại", Toast.LENGTH_SHORT).show();
+                }
+                return;
+
+            case REQUEST_PERMISSION_CAMERA:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            REQUEST_PERMISSION_READ_EXTERNAL_AFTER_CAMERA);
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(AddDateEventActivity.this, "Cấp quyền thất bại", Toast.LENGTH_SHORT).show();
+                }
+                return;
+
+            case REQUEST_PERMISSION_NETWORK_STATE:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            REQUEST_PERMISSION_READ_EXTERNAL_AFTER_CAMERA);
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(AddDateEventActivity.this, "Cấp quyền thất bại", Toast.LENGTH_SHORT).show();
+                }
+                return;
+
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -456,12 +581,12 @@ public class AddDateEventActivity extends AppCompatActivity {
             // action with ID action_save_event was selected
             case R.id.action_save_event:
                 saveEvent();
-                if(actionFlag.equals("create")){
+                if (actionFlag.equals("create")) {
                     Intent newEventSaved = new Intent(AddDateEventActivity.this, DateDetailActivity.class);
                     newEventSaved.putExtra("Date", dateButton.getText());
                     newEventSaved.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(newEventSaved);
-                }else if(actionFlag.equals("update")){
+                } else if (actionFlag.equals("update")) {
                     Intent updatedEvent = new Intent(AddDateEventActivity.this, EventDetail.class);
                     updatedEvent.putExtra("EventID", incomingEventId);
                     //updatedEvent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -478,7 +603,7 @@ public class AddDateEventActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         // Write your code here
-        if(actionFlag.equals("create")) {
+        if (actionFlag.equals("create")) {
             AlertDialog.Builder builder = new AlertDialog.Builder(AddDateEventActivity.this);
             builder.setMessage(R.string.stop_modifying_event);
 
@@ -491,7 +616,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                 }
             });
             builder.show();
-        }else if(actionFlag.equals("update")){
+        } else if (actionFlag.equals("update")) {
             AlertDialog.Builder builder = new AlertDialog.Builder(AddDateEventActivity.this);
             builder.setMessage(R.string.stop_creating_event);
 
@@ -831,6 +956,9 @@ public class AddDateEventActivity extends AppCompatActivity {
     //Hàm chụp ảnh và lưu ảnh vào bộ nhớ
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        ActivityCompat.requestPermissions(AddDateEventActivity.this,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                1);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
@@ -990,7 +1118,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         }
     }
 
-    private void saveEvent(){
+    private void saveEvent() {
         Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
                 .show();
         Event newEvent = new Event();
@@ -1059,9 +1187,9 @@ public class AddDateEventActivity extends AppCompatActivity {
             newEvent.setNotifytime(-1);
         }
 
-        if(actionFlag.equals("create")){
+        if (actionFlag.equals("create")) {
             db.addEvent(newEvent);
-        }else if(actionFlag.equals("update")){
+        } else if (actionFlag.equals("update")) {
             newEvent.setId(incomingEventId);
             db.updateEvent(newEvent);
         }
