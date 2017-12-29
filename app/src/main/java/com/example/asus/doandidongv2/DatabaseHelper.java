@@ -572,6 +572,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return -1;
     }
 
+    public int getDateAfterToday(){
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_DATES + " WHERE " + KEY_DAY + ">= date('now')";
+
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            int result = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+            String date = cursor.getString(cursor.getColumnIndex(KEY_DAY));
+            cursor.close();
+            db.close();
+            return result;
+        }
+        cursor.close();
+        db.close();
+        return -1;
+    }
+
     // Event Table methods
 
     public int addEvent(Event event) {
@@ -721,20 +738,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         List<Event> Events = new ArrayList<Event>();
 
         SQLiteDatabase db = getReadableDatabase();
-        int count;
 
-        String sql = "SELECT COUNT(*) FROM " + TABLE_DATES;
-        Cursor cursor = db.rawQuery(sql, null);
-        cursor.moveToFirst();
-        count = cursor.getInt(0);
-
-        sql = "SELECT COUNT(*) FROM " + TABLE_EVENTS;
-        cursor = db.rawQuery(sql, null);
-        cursor.moveToFirst();
-        count = cursor.getInt(0);
-        cursor.close();
-
-        sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + " = " + event.getDayid();
+        String sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + " = " + event.getDayid();
 
         Cursor reportCursor = db.rawQuery(sql, null);
 

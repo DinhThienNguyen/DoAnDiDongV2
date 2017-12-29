@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         db = new DatabaseHelper(getApplicationContext());
         db.addColor();
+        db.getDateAfterToday();
         compactCalendarView = (CompactCalendarView) findViewById(R.id.compactcalendar_view);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer);
         NavigationView navigationView = (NavigationView)findViewById(R.id.navigation);
@@ -246,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         compactCalendarView.removeAllEvents();
         compactCalendarView.invalidate();
         for (int i = 1; i <= numOfDays; i++) {
-            String date = i + "/" + month + "/" + year;
+            String date = year + "-" + month + "-" + i;
             if (db.getDayId(date) != -1) {
                 currentCalender.set(year, month - 1, i);
                 Event ev = new Event(Color.rgb(Integer.parseInt(eventColor[0]), Integer.parseInt(eventColor[1]), Integer.parseInt(eventColor[2])), currentCalender.getTimeInMillis());

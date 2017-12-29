@@ -74,8 +74,8 @@ public class EventDetail extends AppCompatActivity {
             event = db.getEvent(idEvent);
 
             eventTitleTextView.setText(event.getTitle());
-            String date[] = db.getDate(event.getDayid()).split("/");
-            eventDateTextView.setText("Ngày " + date[0] + ", Tháng " + date[1] + ", Năm " + date[2]);
+            String date[] = db.getDate(event.getDayid()).split("-");
+            eventDateTextView.setText("Ngày " + date[2] + ", Tháng " + date[1] + ", Năm " + date[0]);
             eventTimeTextView.setText(event.getStarttime() + " - " + event.getEndtime());
             if (!event.getLocationid().equals("")) {
                 eventLocationImageView.setImageBitmap(db.getLocationImage(event.getLocationid()));

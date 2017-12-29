@@ -336,8 +336,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                                     }
                                 });
                     }
-                }
-                else {
+                } else {
                     ActivityCompat.requestPermissions(AddDateEventActivity.this,
                             new String[]{Manifest.permission.ACCESS_NETWORK_STATE},
                             REQUEST_PERMISSION_NETWORK_STATE);
@@ -1122,7 +1121,9 @@ public class AddDateEventActivity extends AppCompatActivity {
         Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
                 .show();
         Event newEvent = new Event();
-        newEvent.setDayid(db.addDate(dateButton.getText().toString()));
+        String date[] = dateButton.getText().toString().split("/");
+        String actualDate = date[2] + "-" + date[1] + "-" + date[0];
+        newEvent.setDayid(db.addDate(actualDate));
         if (!TextUtils.isEmpty(eventNameEditText.getText())) {
             newEvent.setTitle(eventNameEditText.getText().toString());
         }
@@ -1197,7 +1198,9 @@ public class AddDateEventActivity extends AppCompatActivity {
 
     private void loadExistingEvent(int id) {
         Event event = db.getEvent(id);
-        dateButton.setText(db.getDate(event.getDayid()));
+        String tempDate[] = db.getDate(event.getDayid()).split("-");
+        String actualDate = tempDate[2] + "/" + tempDate[1] + "/" + tempDate[0];
+        dateButton.setText(actualDate);
         if (!event.getTitle().equals("Không có tiêu đề")) {
             eventNameEditText.setText(event.getTitle());
         }

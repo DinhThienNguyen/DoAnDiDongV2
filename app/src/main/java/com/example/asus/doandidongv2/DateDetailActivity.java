@@ -74,9 +74,13 @@ public class DateDetailActivity extends AppCompatActivity {
             }
         });
 
-        // need to getDayId here
-        dayID = db.addDate(date);
-        loadDayEvent(dayID);
+
+        String tempDate[] = date.split("/");
+        String actualDate = tempDate[2] + "-" + tempDate[1] + "-" + tempDate[0];
+        dayID = db.getDayId(actualDate);
+        if (dayID != -1) {
+            loadDayEvent(dayID);
+        }
     }
 
     @Override
@@ -86,10 +90,11 @@ public class DateDetailActivity extends AppCompatActivity {
             resumeHasRun = true;
             return;
         }
-        loadDayEvent(dayID);
+        if (dayID != -1)
+            loadDayEvent(dayID);
     }
 
-    private void loadDayEvent(int dayId){
+    private void loadDayEvent(int dayId) {
         dateEventLinearLayout.removeAllViews();
         Event event = new Event();
         event.setDayid(dayId);
