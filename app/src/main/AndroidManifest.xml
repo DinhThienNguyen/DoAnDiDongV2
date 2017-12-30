@@ -33,11 +33,21 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".NotifyAlarmReceiver"
+            android:process=":remote" >
+        </receiver>
+
         <receiver android:name="com.example.asus.doandidongv2.BootBroadcastReceiver" android:exported="false" android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".NotifyService"
+            android:exported="false" >
+        </service>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

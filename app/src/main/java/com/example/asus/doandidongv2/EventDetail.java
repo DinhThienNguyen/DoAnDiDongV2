@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -70,6 +71,7 @@ public class EventDetail extends AppCompatActivity {
 
         Intent eventID = getIntent();
         idEvent = eventID.getIntExtra("EventID", -1);
+        Log.v("EventID", "EventID: "+ idEvent);
         if (idEvent != -1) {
             event = db.getEvent(idEvent);
 
@@ -193,6 +195,9 @@ public class EventDetail extends AppCompatActivity {
                     contact.addView(callButton);
                     phoneContactsListLinearLayout.addView(contact);
                 }
+            }else {
+                LinearLayout contactLayout = (LinearLayout)findViewById(R.id.eventPhoneContactsEventDetailLinerLayout);
+                contactLayout.setVisibility(View.GONE);
             }
         }
     }

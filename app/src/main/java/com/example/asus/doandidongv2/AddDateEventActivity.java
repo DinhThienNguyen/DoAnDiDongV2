@@ -591,6 +591,9 @@ public class AddDateEventActivity extends AppCompatActivity {
                     //updatedEvent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(updatedEvent);
                 }
+                Intent notifyIntent = new Intent(this, NotifyService.class);
+                notifyIntent.putExtra("Source", "bootFromApp");
+                startService(notifyIntent);
                 finish();
                 break;
             default:
