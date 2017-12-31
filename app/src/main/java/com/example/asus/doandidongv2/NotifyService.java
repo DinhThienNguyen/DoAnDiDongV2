@@ -152,7 +152,7 @@ public class NotifyService extends IntentService {
             } else {
                 dateEvents.remove(i);
             }
-            if (eventDate.before(currentDate)) {
+            if (eventDate.before(currentDate) || eventDate.equals(currentDate)) {
                 dateEvents.remove(i);
             } else {
                 i++;
@@ -210,7 +210,8 @@ public class NotifyService extends IntentService {
 
     /***
      * Hàm này có nhiệm vụ đặt báo thức dùng AlarmManager để
-     * @param eventID
+     * hẹn giờ gửi notification cho 1 event
+     * @param eventID id của event cần được hẹn giờ thông báo
      * @param dayID
      */
     public void scheduleAlarm(String eventID, int dayID) {

@@ -100,6 +100,10 @@ public class DateDetailActivity extends AppCompatActivity {
         event.setDayid(dayId);
         dateEvents = db.getEvent(event);
 
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(0, 10, 0, 0);
+
         for (i = 0; i < dateEvents.size(); i++) {
             Event temp = dateEvents.get(i);
             LayoutInflater inflater = LayoutInflater.from(this);
@@ -137,7 +141,7 @@ public class DateDetailActivity extends AppCompatActivity {
                     startActivity(displayEventDetail);
                 }
             });
-            dateEventLinearLayout.addView(row);
+            dateEventLinearLayout.addView(row, layoutParams);
         }
     }
 }

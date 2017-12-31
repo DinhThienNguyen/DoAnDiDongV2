@@ -222,10 +222,6 @@ public class EventDetail extends AppCompatActivity {
                     public void onClick(View v) {
                         dialog.dismiss();
                         db.deleteEvent(event.getId());
-//                        Intent refreshDateDetail = new Intent(EventDetail.this, DateDetailActivity.class);
-//                        refreshDateDetail.putExtra("Date", db.getDate(event.getDayid()));
-//                        refreshDateDetail.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                        startActivity(refreshDateDetail);
                         finish();
                     }
                 });
@@ -247,5 +243,11 @@ public class EventDetail extends AppCompatActivity {
                 break;
         }
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+        super.onBackPressed();
     }
 }
