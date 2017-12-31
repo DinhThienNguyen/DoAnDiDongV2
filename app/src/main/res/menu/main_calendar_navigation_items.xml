@@ -2,7 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
 
-    <item android:title="@string/modify_color" />
+    <item android:title="@string/modify_color"
+        android:icon="@drawable/calendarnotifyicon"/>
 
     <item
         android:id="@+id/event_calendar_color"

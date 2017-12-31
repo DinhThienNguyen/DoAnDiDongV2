@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         db.getDateAfterToday();
         compactCalendarView = (CompactCalendarView) findViewById(R.id.compactcalendar_view);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer);
-        NavigationView navigationView = (NavigationView)findViewById(R.id.navigation);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.navigation);
         navigationView.setNavigationItemSelectedListener(this);
 
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
@@ -110,18 +110,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     case 8:
                     case 10:
                     case 12:
-                        loadEvent(31, currentMonth, currentYear);
+                        loadEvent(31, Integer.toString(currentMonth), currentYear);
                         break;
 
                     case 2:
-                        loadEvent(28, currentMonth, currentYear);
+                        loadEvent(28, Integer.toString(currentMonth), currentYear);
                         break;
 
                     case 4:
                     case 6:
                     case 9:
                     case 11:
-                        loadEvent(30, currentMonth, currentYear);
+                        loadEvent(30, Integer.toString(currentMonth), currentYear);
                         break;
                 }
                 actionBar.setTitle(dateFormatForMonth.format(firstDayOfNewMonth));
@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         loadComponentColorAtStartup();
         currentMonth = currentCalender.get(Calendar.MONTH) + 1;
         currentYear = currentCalender.get(Calendar.YEAR);
-        loadEvent(currentCalender.getActualMaximum(Calendar.DAY_OF_MONTH), currentMonth, currentYear);
+        loadEvent(currentCalender.getActualMaximum(Calendar.DAY_OF_MONTH), Integer.toString(currentMonth), currentYear);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onColorChosen(@ColorInt int color) {
                         db.modifyColor(Color.red(color), Color.green(color), Color.blue(color), KEY_EVENT_COLOR);
                         loadComponentColorAtStartup();
-                        loadEvent(currentCalender.getActualMaximum(Calendar.DAY_OF_MONTH), currentMonth, currentYear);
+                        loadEvent(currentCalender.getActualMaximum(Calendar.DAY_OF_MONTH), Integer.toString(currentMonth), currentYear);
                         cp.dismiss();
                     }
                 });
@@ -240,16 +240,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             resumeHasRun = true;
             return;
         }
-        loadEvent(currentCalender.getActualMaximum(Calendar.DAY_OF_MONTH), currentMonth, currentYear);
+        loadEvent(currentCalender.getActualMaximum(Calendar.DAY_OF_MONTH), Integer.toString(currentMonth), currentYear);
     }
 
-    private void loadEvent(int numOfDays, int month, int year) {
+    private void loadEvent(int numOfDays, String month, int year) {
         compactCalendarView.removeAllEvents();
         compactCalendarView.invalidate();
+
+        if (Integer.parseInt(month) < 10) {
+            month = "0" + month;
+        }
+
         for (int i = 1; i <= numOfDays; i++) {
             String date = year + "-" + month + "-" + i;
             if (db.getDayId(date) != -1) {
-                currentCalender.set(year, month - 1, i);
+                currentCalender.set(year, Integer.parseInt(month) - 1, i);
                 Event ev = new Event(Color.rgb(Integer.parseInt(eventColor[0]), Integer.parseInt(eventColor[1]), Integer.parseInt(eventColor[2])), currentCalender.getTimeInMillis());
                 compactCalendarView.addEvent(ev, true);
             }
@@ -278,8 +283,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Integer.parseInt(mainCalendarColor[2])));
         ColorDrawable cd = new ColorDrawable(
                 Color.rgb(Integer.parseInt(mainCalendarColor[0]),
-                Integer.parseInt(mainCalendarColor[1]),
-                Integer.parseInt(mainCalendarColor[2])));
+                        Integer.parseInt(mainCalendarColor[1]),
+                        Integer.parseInt(mainCalendarColor[2])));
         actionBar.setBackgroundDrawable(cd);
     }
 

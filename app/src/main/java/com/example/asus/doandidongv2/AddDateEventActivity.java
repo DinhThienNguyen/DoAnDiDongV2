@@ -362,6 +362,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                 if (spinnerInitializedCount < spinnerCount) {
                     spinnerInitializedCount++;
                 } else {
+                    eventAttachmentSpinner.setSelection(0);
                     switch (position) {
                         case 1:
                             // nếu đính kèm được chọn là số điện thoại
@@ -438,7 +439,7 @@ public class AddDateEventActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
-
+                eventAttachmentSpinner.setSelection(0);
             }
         });
         imageAttachmentIds = "";

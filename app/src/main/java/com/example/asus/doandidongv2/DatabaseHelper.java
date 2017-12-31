@@ -633,6 +633,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         String sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_ID + " = " + id;
         Cursor cursor = db.rawQuery(sql, null);
+//        db.close();
         if (cursor.moveToFirst()) {
             String test = cursor.getString(cursor.getColumnIndex(KEY_IMAGEATTACHMENT_ID));
             if (!test.equals("")) {
@@ -659,7 +660,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.delete(TABLE_EVENTS, KEY_ID + "=?", new String[]{Integer.toString(id)});
 
             int dayID = cursor.getInt(cursor.getColumnIndex(KEY_DAY_ID));
-            sql = "SELECT * FROM" + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + "=" + dayID;
+            sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_DAY_ID + "=" + dayID;
             cursor = db.rawQuery(sql, null);
             if (!cursor.moveToFirst()) {
                 db.delete(TABLE_DATES, KEY_ID + "=?", new String[]{Integer.toString(dayID)});
