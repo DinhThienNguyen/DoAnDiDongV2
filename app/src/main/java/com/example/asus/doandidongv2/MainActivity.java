@@ -252,7 +252,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         for (int i = 1; i <= numOfDays; i++) {
-            String date = year + "-" + month + "-" + i;
+            String date;
+            if(i < 10){
+                date = year + "-" + month + "-0" + i;
+            }else {
+                date = year + "-" + month + "-" + i;
+            }
             if (db.getDayId(date) != -1) {
                 currentCalender.set(year, Integer.parseInt(month) - 1, i);
                 Event ev = new Event(Color.rgb(Integer.parseInt(eventColor[0]), Integer.parseInt(eventColor[1]), Integer.parseInt(eventColor[2])), currentCalender.getTimeInMillis());

@@ -580,22 +580,29 @@ public class AddDateEventActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // action with ID action_save_event was selected
             case R.id.action_save_event:
-                saveEvent();
-                if (actionFlag.equals("create")) {
-                    Intent newEventSaved = new Intent(AddDateEventActivity.this, DateDetailActivity.class);
-                    newEventSaved.putExtra("Date", dateButton.getText());
-                    newEventSaved.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(newEventSaved);
-                } else if (actionFlag.equals("update")) {
-                    Intent updatedEvent = new Intent(AddDateEventActivity.this, EventDetail.class);
-                    updatedEvent.putExtra("EventID", incomingEventId);
-                    //updatedEvent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(updatedEvent);
+                if(saveEvent()) {
+                    Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
+                            .show();
+                    if (actionFlag.equals("create")) {
+                        Intent newEventSaved = new Intent(AddDateEventActivity.this, DateDetailActivity.class);
+                        newEventSaved.putExtra("Date", dateButton.getText());
+                        newEventSaved.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(newEventSaved);
+                    } else if (actionFlag.equals("update")) {
+                        Intent updatedEvent = new Intent(AddDateEventActivity.this, EventDetail.class);
+                        updatedEvent.putExtra("EventID", incomingEventId);
+                        //updatedEvent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(updatedEvent);
+                    }
+                    Intent notifyIntent = new Intent(this, NotifyService.class);
+                    notifyIntent.putExtra("Source", "bootFromApp");
+                    startService(notifyIntent);
+                    finish();
                 }
-                Intent notifyIntent = new Intent(this, NotifyService.class);
-                notifyIntent.putExtra("Source", "bootFromApp");
-                startService(notifyIntent);
-                finish();
+                else{
+                    Toast.makeText(this, "Thời gian bắt đầu phải nhỏ hon thời gian kết thúc", Toast.LENGTH_SHORT)
+                            .show();
+                }
                 break;
             default:
                 break;
@@ -1121,9 +1128,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         }
     }
 
-    private void saveEvent() {
-        Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
-                .show();
+    private boolean saveEvent() {
         Event newEvent = new Event();
         String date[] = dateButton.getText().toString().split("/");
         String actualDate = date[2] + "-" + date[1] + "-" + date[0];
@@ -1154,17 +1159,16 @@ public class AddDateEventActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(eventLocationAddressTextView.getText())) {
             newEvent.setLocationaddress(eventLocationAddressTextView.getText().toString());
         }
-        String starttime[] = eventStartTimeButton.getText().toString().split(":");
-        String endtime[] = eventEndTimeButton.getText().toString().split(":");
-        if (Integer.parseInt(starttime[0]) == Integer.parseInt(endtime[0])) {
-            if (Integer.parseInt(starttime[1]) >= Integer.parseInt(endtime[1])) {
-                Toast.makeText(getApplicationContext(), "Thời gian bắt đầu của sự kiện phải nhỏ hơn thời gian kết thúc",
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
+
+
+        Date startTime = parseDate(eventStartTimeButton.getText().toString());
+        Date endTime = parseDate(eventEndTimeButton.getText().toString());
+        if(startTime.before(endTime)){
+            newEvent.setStarttime(eventStartTimeButton.getText().toString());
+            newEvent.setEndtime(eventEndTimeButton.getText().toString());
+        }else{
+            return false;
         }
-        newEvent.setStarttime(eventStartTimeButton.getText().toString());
-        newEvent.setEndtime(eventEndTimeButton.getText().toString());
 
         if (!TextUtils.isEmpty(eventDescriptionEditText.getText())) {
             newEvent.setDescription(eventDescriptionEditText.getText().toString());
@@ -1198,6 +1202,7 @@ public class AddDateEventActivity extends AppCompatActivity {
             newEvent.setId(incomingEventId);
             db.updateEvent(newEvent);
         }
+        return true;
     }
 
     private void loadExistingEvent(int id) {
@@ -1250,6 +1255,21 @@ public class AddDateEventActivity extends AppCompatActivity {
                 PhoneContact contact = db.getPhoneContact(Integer.parseInt(contacts[i]));
                 addPhoneContact(contact.getContactName(), contact.getContactNumber(), Integer.parseInt(contacts[i]));
             }
+        }
+    }
+
+    /***
+     * Hàm này có nhiệm vụ chuyển 1 chuỗi ký tự thời gian dạng "Giờ : Phút" sáng
+     * 1 đối tượng Date
+     * @param date
+     * @return
+     */
+    private Date parseDate(String date) {
+        SimpleDateFormat inputParser = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        try {
+            return inputParser.parse(date);
+        } catch (java.text.ParseException e) {
+            return new Date(0);
         }
     }
 }
