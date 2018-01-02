@@ -1,11 +1,17 @@
 package com.example.asus.doandidongv2;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.Image;
 import android.net.Uri;
+import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,8 +25,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.w3c.dom.Text;
+
+import java.util.List;
 
 public class EventDetail extends AppCompatActivity {
 
@@ -28,6 +37,8 @@ public class EventDetail extends AppCompatActivity {
     private LinearLayout imageAttachmentListLinearLayout;
     private ImageView hiddenImgAttachImageView;
     private LinearLayout phoneContactsListLinearLayout;
+    private final int REQUEST_PERMISSON_CALLPHONE = 1;
+    private String phoneNumber;
 
     private DatabaseHelper db;
     private Context mContext;
@@ -58,9 +69,9 @@ public class EventDetail extends AppCompatActivity {
         eventLocationAddressTextView = (TextView) findViewById(R.id.eventDetailLocationAddressTextView);
         eventNotifyTimeTextView = (TextView) findViewById(R.id.eventNotifyTimeEventDetailTextView);
         eventDescription = (TextView) findViewById(R.id.eventDetailDescriptionTextView);
-        imageAttachmentListLinearLayout = (LinearLayout)findViewById(R.id.imageAttachmentListLinearLayout);
-        hiddenImgAttachImageView = (ImageView)findViewById(R.id.hiddenImgAttachImageView);
-        phoneContactsListLinearLayout = (LinearLayout)findViewById(R.id.phoneContactsListLinearLayout);
+        imageAttachmentListLinearLayout = (LinearLayout) findViewById(R.id.imageAttachmentListLinearLayout);
+        hiddenImgAttachImageView = (ImageView) findViewById(R.id.hiddenImgAttachImageView);
+        phoneContactsListLinearLayout = (LinearLayout) findViewById(R.id.phoneContactsListLinearLayout);
 
         hiddenImgAttachImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,7 +82,7 @@ public class EventDetail extends AppCompatActivity {
 
         Intent eventID = getIntent();
         idEvent = eventID.getIntExtra("EventID", -1);
-        Log.v("EventID", "EventID: "+ idEvent);
+        Log.v("EventID", "EventID: " + idEvent);
         if (idEvent != -1) {
             event = db.getEvent(idEvent);
 
@@ -140,11 +151,12 @@ public class EventDetail extends AppCompatActivity {
                 eventDescription.setVisibility(View.GONE);
             }
 
-            if (!event.getImageattachmentid().equals("")) {
-                String images[] = event.getImageattachmentid().split(" ");
-                for (int i = 0; i < images.length; i++) {
+            List<ImageAttachment> imageAttachments = db.getAllImageAttachmentsOf1Event(idEvent);
+            if (imageAttachments.size() > 0) {
+                for (int i = 0; i < imageAttachments.size(); i++) {
                     ImageView image = new ImageView(getApplicationContext());
-                    final Bitmap picture = db.getImageAttachment(Integer.parseInt(images[i]));
+                    ImageAttachment temp  =imageAttachments.get(i);
+                    final Bitmap picture = temp.getImage();
                     image.setImageBitmap(picture);
                     image.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -155,14 +167,14 @@ public class EventDetail extends AppCompatActivity {
                     });
                     imageAttachmentListLinearLayout.addView(image);
                 }
-            }else {
-                LinearLayout imageLayout = (LinearLayout)findViewById(R.id.eventAttachmentImageEventDetailLinerLayout);
+            } else {
+                LinearLayout imageLayout = (LinearLayout) findViewById(R.id.eventAttachmentImageEventDetailLinerLayout);
                 imageLayout.setVisibility(View.GONE);
             }
 
-            if(!event.getPhonecontactid().equals("")){
-                String contacts[] = event.getPhonecontactid().split(" ");
-                for(int i = 0;i<contacts.length;i++){
+            List<PhoneContact> contacts = db.getAllPhoneContactsOf1Event(idEvent);
+            if (contacts.size() > 0) {
+                for(int i = 0; i<contacts.size();i++){
                     LinearLayout contact = new LinearLayout(getApplicationContext());
                     contact.setOrientation(LinearLayout.VERTICAL);
 
@@ -174,19 +186,28 @@ public class EventDetail extends AppCompatActivity {
                     contactNumber.setTextSize(15);
                     contactNumber.setTextColor(Color.parseColor("#000000"));
 
-                    PhoneContact phoneContact = db.getPhoneContact(Integer.parseInt(contacts[i]));
+                    PhoneContact phoneContact = contacts.get(i);
                     contactName.setText(phoneContact.getContactName());
                     contactNumber.setText(phoneContact.getContactNumber());
-                    final String number = phoneContact.getContactNumber();
+                    phoneNumber = phoneContact.getContactNumber();
 
-                    Button callButton = new Button(getApplicationContext());
+                    final Button callButton = new Button(getApplicationContext());
                     callButton.setTextSize(15);
                     callButton.setTextColor(Color.parseColor("#000000"));
                     callButton.setText("Gọi");
                     callButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-
+                            if (ActivityCompat.checkSelfPermission(EventDetail.this,
+                                    Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                                Intent callPhone = new Intent(Intent.ACTION_CALL);
+                                callPhone.setData(Uri.parse("tel:" + phoneNumber));
+                                startActivity(callPhone);
+                            } else {
+                                ActivityCompat.requestPermissions(EventDetail.this,
+                                        new String[]{Manifest.permission.CALL_PHONE},
+                                        REQUEST_PERMISSON_CALLPHONE);
+                            }
                         }
                     });
 
@@ -196,10 +217,34 @@ public class EventDetail extends AppCompatActivity {
                     phoneContactsListLinearLayout.addView(contact);
                 }
             }else {
-                LinearLayout contactLayout = (LinearLayout)findViewById(R.id.eventPhoneContactsEventDetailLinerLayout);
+                LinearLayout contactLayout = (LinearLayout) findViewById(R.id.eventPhoneContactsEventDetailLinerLayout);
                 contactLayout.setVisibility(View.GONE);
             }
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_PERMISSON_CALLPHONE:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Intent callPhone = new Intent(Intent.ACTION_CALL);
+                    callPhone.setData(Uri.parse("tel:" + phoneNumber));
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                        return;
+                    }
+                    startActivity(callPhone);
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Toast.makeText(EventDetail.this, "Cấp quyền thất bại", Toast.LENGTH_SHORT).show();
+                }
+                return;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override

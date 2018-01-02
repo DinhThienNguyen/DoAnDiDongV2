@@ -7,8 +7,6 @@ package com.example.asus.doandidongv2;
 public class Event {
     private int id;
     private int dayid;
-    private String imageattachmentid;
-    private String phonecontactid;
     private String title;
     private String locationid;
     private String locationname;
@@ -19,8 +17,6 @@ public class Event {
     private int notifytime;
 
     public Event() {
-        imageattachmentid = "";
-        phonecontactid = "";
         title = "Không có tiêu đề";
         locationid = "";
         locationaddress = "";
@@ -28,12 +24,10 @@ public class Event {
         description = "";
     }
 
-    public Event(int _id, int _dayid, String _imageattachmentid, String _phonecontactid, String _title, String _locationid, String _locationname, String _locationaddress, String _starttime, String _endtime, String _description, int _notifytime) {
+    public Event(int _id, int _dayid, String _title, String _locationid, String _locationname, String _locationaddress, String _starttime, String _endtime, String _description, int _notifytime) {
         if (id != -1)
             id = _id;
         dayid = _dayid;
-        imageattachmentid = _imageattachmentid;
-        phonecontactid = _phonecontactid;
         title = _title;
         locationid = _locationid;
         locationname = _locationname;
@@ -51,14 +45,6 @@ public class Event {
 
     public void setDayid(int _dayid) {
         dayid = _dayid;
-    }
-
-    public void setImageattachmentid(String _imageattachmentid) {
-        imageattachmentid = _imageattachmentid;
-    }
-
-    public void setPhonecontactid(String _phonecontactid) {
-        phonecontactid = _phonecontactid;
     }
 
     public void setTitle(String _title) {
@@ -100,14 +86,6 @@ public class Event {
 
     public int getDayid() {
         return dayid;
-    }
-
-    public String getImageattachmentid() {
-        return imageattachmentid;
-    }
-
-    public String getPhonecontactid() {
-        return phonecontactid;
     }
 
     public String getLocationid() {

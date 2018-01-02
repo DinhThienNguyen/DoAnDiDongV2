@@ -580,7 +580,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // action with ID action_save_event was selected
             case R.id.action_save_event:
-                if(saveEvent()) {
+                if (saveEvent()) {
                     Toast.makeText(this, "Lưu thành công", Toast.LENGTH_SHORT)
                             .show();
                     if (actionFlag.equals("create")) {
@@ -598,8 +598,7 @@ public class AddDateEventActivity extends AppCompatActivity {
                     notifyIntent.putExtra("Source", "bootFromApp");
                     startService(notifyIntent);
                     finish();
-                }
-                else{
+                } else {
                     Toast.makeText(this, "Thời gian bắt đầu phải nhỏ hon thời gian kết thúc", Toast.LENGTH_SHORT)
                             .show();
                 }
@@ -622,6 +621,18 @@ public class AddDateEventActivity extends AppCompatActivity {
             builder.setNegativeButton(R.string.discard_changes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
+                    // Nếu chọn huỷ các thay đổi mà còn các đính kèm chưa xoá thì thực hiện xoá
+                    for (int i = 0; i < eventAttachmentCount; i++) {
+                        LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(i);
+                        TextView nextTextView = (TextView) nextLayout.getChildAt(0);
+                        if (nextTextView.getText().equals("Hình ảnh")) {
+                            db.deleteImageAttachment(nextTextView.getId());
+                        } else {
+                            if (nextTextView.getText().equals("Số điện thoại")) {
+                                db.deletePhoneContact(nextTextView.getId());
+                            }
+                        }
+                    }
                     finish();
                 }
             });
@@ -862,7 +873,7 @@ public class AddDateEventActivity extends AppCompatActivity {
         }
         cursorPhone.close();
 
-        PhoneContact newPhoneContact = new PhoneContact(contactName, contactNumber);
+        PhoneContact newPhoneContact = new PhoneContact(db.getLatestEventId(), contactName, contactNumber);
         int id = db.addPhoneContact(newPhoneContact);
 
         addPhoneContact(contactName, contactNumber, id);
@@ -959,7 +970,7 @@ public class AddDateEventActivity extends AppCompatActivity {
     // Hàm dùng để lấy hình ảnh từ thư viện
     private void retrievePhotos() throws IOException {
         final Bitmap yourSelectedImage = decodeUri(selectedImage);
-        int id = db.addImageAttachment(yourSelectedImage);
+        int id = db.addImageAttachment(yourSelectedImage, db.getLatestEventId());
         addImageAttachment(yourSelectedImage, id);
     }
 
@@ -1147,8 +1158,6 @@ public class AddDateEventActivity extends AppCompatActivity {
                 }
             }
         }
-        newEvent.setImageattachmentid(imageAttachmentIds.trim());
-        newEvent.setPhonecontactid(phoneContactIds.trim());
         if (!TextUtils.isEmpty(locationId)) {
             newEvent.setLocationid(locationId);
             db.addLocationImage(locationId, locationImage);
@@ -1163,10 +1172,10 @@ public class AddDateEventActivity extends AppCompatActivity {
 
         Date startTime = parseDate(eventStartTimeButton.getText().toString());
         Date endTime = parseDate(eventEndTimeButton.getText().toString());
-        if(startTime.before(endTime)){
+        if (startTime.before(endTime)) {
             newEvent.setStarttime(eventStartTimeButton.getText().toString());
             newEvent.setEndtime(eventEndTimeButton.getText().toString());
-        }else{
+        } else {
             return false;
         }
 
@@ -1228,33 +1237,36 @@ public class AddDateEventActivity extends AppCompatActivity {
                 eventNotifyTimeButton.setText("Trước " + event.getNotifytime() + " phút");
                 break;
         }
+
         if (!event.getDescription().equals("")) {
             eventDescriptionEditText.setText(event.getDescription());
         }
+
         if (!event.getLocationname().equals("")) {
             eventLocationEditText.setText(event.getLocationname());
         }
+
         if (!event.getLocationaddress().equals("")) {
             eventLocationAddressTextView.setText(event.getLocationaddress());
             eventLocationAddressTextView.setVisibility(View.VISIBLE);
         }
+
         if (!event.getLocationid().equals("")) {
             locationId = event.getLocationid();
             eventLocationImageView.setImageBitmap(db.getLocationImage(event.getLocationid()));
             eventLocationImageView.setVisibility(View.VISIBLE);
         }
-        if (!event.getImageattachmentid().equals("")) {
-            String images[] = event.getImageattachmentid().split(" ");
-            for (int i = 0; i < images.length; i++) {
-                addImageAttachment(db.getImageAttachment(Integer.parseInt(images[i])), Integer.parseInt(images[i]));
-            }
+
+        List<ImageAttachment> imageAttachments = db.getAllImageAttachmentsOf1Event(id);
+        for (int i = 0; i < imageAttachments.size(); i++) {
+            ImageAttachment temp = imageAttachments.get(i);
+            addImageAttachment(temp.getImage(), temp.getId());
         }
-        if (!event.getPhonecontactid().equals("")) {
-            String contacts[] = event.getPhonecontactid().split(" ");
-            for (int i = 0; i < contacts.length; i++) {
-                PhoneContact contact = db.getPhoneContact(Integer.parseInt(contacts[i]));
-                addPhoneContact(contact.getContactName(), contact.getContactNumber(), Integer.parseInt(contacts[i]));
-            }
+
+        List<PhoneContact> contacts = db.getAllPhoneContactsOf1Event(id);
+        for (int i = 0; i < contacts.size(); i++) {
+            PhoneContact contact = contacts.get(i);
+            addPhoneContact(contact.getContactName(), contact.getContactNumber(), contact.getId());
         }
     }
 

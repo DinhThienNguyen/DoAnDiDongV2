@@ -4,6 +4,7 @@ import android.app.KeyguardManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
@@ -27,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String LOG = "DatabaseHelper";
 
     // Database Version
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 10;
 
     // Database Name
     private static final String DATABASE_NAME = "CalendarManager";
@@ -57,6 +58,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_IMAGE_ID = "locationid";
     private static final String KEY_LOCATIONIMG_PATH = "imgpath";
 
+    // PHONECONTACTS + IMAGEATTACHMENTS similar column
+    private static final String KEY_EVENT_ID = "eventid";
+
     // MISCELLANEOUS Table - column names
     private static final String KEY_EVENT_COLOR = "eventcolor";
     private static final String KEY_CURRENT_DAY_COLOR = "currentdaycolor";
@@ -65,8 +69,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // EVENTS Table - collumn names
     private static final String KEY_DAY_ID = "dateid";
-    private static final String KEY_IMAGEATTACHMENT_ID = "imageattachmentid";
-    private static final String KEY_PHONECONTACTS_ID = "phonecontactid";
     private static final String KEY_TITLE = "title";
     private static final String KEY_LOCATION_ID = "eventlocationid";
     private static final String KEY_LOCATION_NAME = "eventlocationname";
@@ -79,17 +81,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Table Create Statements
     // Dates table create statement
     private static final String CREATE_TABLE_DATE = "CREATE TABLE "
-            + TABLE_DATES + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," + KEY_DAY
+            + TABLE_DATES + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY," + KEY_DAY
             + " TEXT)";
 
     // ImageAttachments table create statement
     private static final String CREATE_TABLE_IMAGEATTACHMENTS = "CREATE TABLE " + TABLE_IMAGEATTACHMENTS
-            + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," + KEY_IMAGE_PATH + " TEXT)";
+            + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY," + KEY_IMAGE_PATH + " TEXT," + KEY_EVENT_ID + " INTEGER)";
 
     // PhoneContacts table create statement
     private static final String CREATE_TABLE_PHONECONTACTS = "CREATE TABLE "
-            + TABLE_PHONE_CONTACTS + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
-            + KEY_CONTACT_NAME + " TEXT," + KEY_CONTACT_NUMBER + " TEXT)";
+            + TABLE_PHONE_CONTACTS + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY,"
+            + KEY_CONTACT_NAME + " TEXT," + KEY_CONTACT_NUMBER + " TEXT," + KEY_EVENT_ID + " INTEGER)";
 
     // LocationImages table create statement
     private static final String CREATE_TABLE_LOCATIONIMAGE = "CREATE TABLE "
@@ -105,10 +107,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Events table create statement
     private static final String CREATE_TABLE_EVENTS = "CREATE TABLE "
-            + TABLE_EVENTS + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
+            + TABLE_EVENTS + "(" + KEY_ID + " INTEGER NOT NULL PRIMARY KEY,"
             + KEY_DAY_ID + " INTEGER,"
-            + KEY_IMAGEATTACHMENT_ID + " TEXT,"
-            + KEY_PHONECONTACTS_ID + " TEXT,"
             + KEY_TITLE + " TEXT,"
             + KEY_LOCATION_ID + " TEXT,"
             + KEY_LOCATION_NAME + " TEXT,"
@@ -153,7 +153,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      *
      * @param picture hình cần lưu vào database
      */
-    public int addImageAttachment(Bitmap picture) {
+    public int addImageAttachment(Bitmap picture, int eventID) {
         // Mở kết nối vào database
         SQLiteDatabase db = getWritableDatabase();
 
@@ -206,11 +206,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues newPictureValue = new ContentValues();
         newPictureValue.put(KEY_ID, id);
         newPictureValue.put(KEY_IMAGE_PATH, picturePath);
+        newPictureValue.put(KEY_EVENT_ID, eventID);
         db.insert(TABLE_IMAGEATTACHMENTS, null, newPictureValue);
 
-        // Đóng kết nối database
-        db.close();
         return id;
+    }
+
+    public List<ImageAttachment> getAllImageAttachmentsOf1Event(int eventID) {
+        List<ImageAttachment> imageAttachments = new ArrayList<ImageAttachment>();
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_IMAGEATTACHMENTS + " WHERE " + KEY_EVENT_ID + " = " + eventID;
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+                ImageAttachment newImage = new ImageAttachment();
+                newImage.setId(id);
+                newImage.setImage(getImageAttachment(id));
+                imageAttachments.add(newImage);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return imageAttachments;
     }
 
     /**
@@ -260,10 +277,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         // Đóng kết nối database
         reportCursor.close();
-        db.close();
 
         // trả về đường dẫn bức ảnh
         return (picturePath);
+    }
+
+    public void deleteAllImageAttachmentOf1Event(int eventID) {
+        SQLiteDatabase db = getWritableDatabase();
+        String sql = "SELECT * FROM " + TABLE_IMAGEATTACHMENTS + " WHERE " + KEY_EVENT_ID + " = " + eventID;
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+                deleteImageAttachment(id);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
     }
 
     /**
@@ -272,6 +301,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @param id the report to remove.
      */
     public void deleteImageAttachment(int id) {
+        // Mở kết nối vào database
+        SQLiteDatabase db = getWritableDatabase();
+
         // Lấy đường dẫn của bức ảnh cần xoá dựa trên id
         String picturePath = getImagePath(id);
 
@@ -282,16 +314,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             reportFilePath.delete();
         }
 
-        // Mở kết nối vào database
-        SQLiteDatabase db = getWritableDatabase();
-
         // Thực hiện xoá dòng có id trùng với id truyền vào trong bảng
         db.delete(TABLE_IMAGEATTACHMENTS,
                 KEY_ID + "=?",
                 new String[]{Integer.toString(id)});
-
-        // Đóng kết nối database
-        db.close();
     }
 
 
@@ -349,7 +375,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         // Đóng kết nối database
         reportCursor.close();
-        db.close();
         return locationid;
     }
 
@@ -375,7 +400,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             // Đóng kết nối database
             reportCursor.close();
-            db.close();
 
             // Load file từ đường dẫn mới lấy được
             // và trả về bức ảnh
@@ -385,7 +409,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } else {
             // Nếu không tìm được dòng nào khớp thì trả về null
             reportCursor.close();
-            db.close();
             return (null);
         }
     }
@@ -424,7 +447,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(locationid)});
 
         reportCursor.close();
-        db.close();
     }
 
 
@@ -453,10 +475,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newContactValue.put(KEY_ID, id);
         newContactValue.put(KEY_CONTACT_NAME, contact.getContactName());
         newContactValue.put(KEY_CONTACT_NUMBER, contact.getContactNumber());
+        newContactValue.put(KEY_EVENT_ID, contact.getEventID());
 
         db.insert(TABLE_PHONE_CONTACTS, null, newContactValue);
-        db.close();
         return id;
+    }
+
+    public List<PhoneContact> getAllPhoneContactsOf1Event(int eventID) {
+        SQLiteDatabase db = getReadableDatabase();
+        List<PhoneContact> contacts = new ArrayList<PhoneContact>();
+        String sql = "SELECT * FROM " + TABLE_PHONE_CONTACTS + " WHERE " + KEY_EVENT_ID + " = " + eventID;
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+                contacts.add(getPhoneContact(id));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return contacts;
     }
 
     public PhoneContact getPhoneContact(int id) {
@@ -467,17 +504,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         if (reportCursor.moveToFirst()) {
             PhoneContact contact = new PhoneContact(
+                    reportCursor.getInt(reportCursor.getColumnIndex(KEY_EVENT_ID)),
                     reportCursor.getString(reportCursor.getColumnIndex(KEY_CONTACT_NAME)),
                     reportCursor.getString(reportCursor.getColumnIndex(KEY_CONTACT_NUMBER)));
             reportCursor.close();
-            db.close();
             return contact;
         }
 
         // Get the contact info
         reportCursor.close();
-        db.close();
         return null;
+    }
+
+    public void deleteAllPhoneContactsOf1Event(int eventID) {
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_PHONE_CONTACTS + " WHERE " + KEY_EVENT_ID + " = " + eventID;
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+                deletePhoneContact(id);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
     }
 
     public void deletePhoneContact(int id) {
@@ -486,7 +535,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_PHONE_CONTACTS,
                 KEY_ID + "=?",
                 new String[]{Integer.toString(id)});
-        db.close();
     }
 
 
@@ -521,13 +569,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             newDateValue.put(KEY_DAY, date);
 
             db.insert(TABLE_DATES, null, newDateValue);
-            db.close();
             return id;
         } else {
-
             int resultid = reportCursor.getInt(reportCursor.getColumnIndex(KEY_ID));
             reportCursor.close();
-            db.close();
             return resultid;
         }
     }
@@ -548,11 +593,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             String result = cursor.getString(cursor.getColumnIndex(KEY_DAY));
             cursor.close();
-            db.close();
             return result;
         }
         cursor.close();
-        db.close();
         return null;
     }
 
@@ -564,15 +607,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             int result = cursor.getInt(cursor.getColumnIndex(KEY_ID));
             cursor.close();
-            db.close();
             return result;
         }
         cursor.close();
-        db.close();
         return -1;
     }
 
-    public int getDateAfterToday(){
+    public int getDateAfterToday() {
         SQLiteDatabase db = getReadableDatabase();
         String sql = "SELECT * FROM " + TABLE_DATES + " WHERE " + KEY_DAY + ">= date('now')";
 
@@ -581,11 +622,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int result = cursor.getInt(cursor.getColumnIndex(KEY_ID));
             String date = cursor.getString(cursor.getColumnIndex(KEY_DAY));
             cursor.close();
-            db.close();
             return result;
         }
         cursor.close();
-        db.close();
         return -1;
     }
 
@@ -611,8 +650,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues newEventValue = new ContentValues();
         newEventValue.put(KEY_ID, id);
         newEventValue.put(KEY_DAY_ID, event.getDayid());
-        newEventValue.put(KEY_IMAGEATTACHMENT_ID, event.getImageattachmentid());
-        newEventValue.put(KEY_PHONECONTACTS_ID, event.getPhonecontactid());
         newEventValue.put(KEY_TITLE, event.getTitle());
         newEventValue.put(KEY_LOCATION_ID, event.getLocationid());
         newEventValue.put(KEY_LOCATION_NAME, event.getLocationname());
@@ -623,7 +660,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newEventValue.put(KEY_NOTIFY_TIME, event.getNotifytime());
 
         db.insert(TABLE_EVENTS, null, newEventValue);
-        db.close();
         return id;
     }
 
@@ -633,30 +669,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         String sql = "SELECT * FROM " + TABLE_EVENTS + " WHERE " + KEY_ID + " = " + id;
         Cursor cursor = db.rawQuery(sql, null);
-//        db.close();
         if (cursor.moveToFirst()) {
-            String test = cursor.getString(cursor.getColumnIndex(KEY_IMAGEATTACHMENT_ID));
-            if (!test.equals("")) {
-                String imageAttachment[] = test.split(" ");
-                for (int i = 0; i < imageAttachment.length; i++) {
-                    deleteImageAttachment(Integer.parseInt(imageAttachment[i]));
-                }
-            }
+            deleteAllImageAttachmentOf1Event(id);
 
-            test = cursor.getString(cursor.getColumnIndex(KEY_PHONECONTACTS_ID));
-            if (!test.equals("")) {
-                String phoneContacts[] = cursor.getString(cursor.getColumnIndex(KEY_PHONECONTACTS_ID)).split(" ");
-                for (int i = 0; i < phoneContacts.length; i++) {
-                    deletePhoneContact(Integer.parseInt(phoneContacts[i]));
-                }
-            }
+            deleteAllPhoneContactsOf1Event(id);
 
-            test = cursor.getString(cursor.getColumnIndex(KEY_LOCATION_ID));
+            String test = cursor.getString(cursor.getColumnIndex(KEY_LOCATION_ID));
             if (!test.equals(" ")) {
                 deleteLocationImage(test);
             }
 
-            db = getWritableDatabase();
             db.delete(TABLE_EVENTS, KEY_ID + "=?", new String[]{Integer.toString(id)});
 
             int dayID = cursor.getInt(cursor.getColumnIndex(KEY_DAY_ID));
@@ -668,7 +690,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         cursor.close();
-        db.close();
     }
 
     public Event getEvent(int id) {
@@ -681,8 +702,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Event temp = new Event(
                     cursor.getInt(cursor.getColumnIndex(KEY_ID)),
                     cursor.getInt(cursor.getColumnIndex(KEY_DAY_ID)),
-                    cursor.getString(cursor.getColumnIndex(KEY_IMAGEATTACHMENT_ID)),
-                    cursor.getString(cursor.getColumnIndex(KEY_PHONECONTACTS_ID)),
                     cursor.getString(cursor.getColumnIndex(KEY_TITLE)),
                     cursor.getString(cursor.getColumnIndex(KEY_LOCATION_ID)),
                     cursor.getString(cursor.getColumnIndex(KEY_LOCATION_NAME)),
@@ -692,11 +711,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     cursor.getString(cursor.getColumnIndex(KEY_DESCRIPTION)),
                     cursor.getInt(cursor.getColumnIndex(KEY_NOTIFY_TIME))
             );
-            db.close();
             cursor.close();
             return temp;
         }
-        db.close();
         cursor.close();
         return null;
     }
@@ -707,8 +724,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues newEventValue = new ContentValues();
         newEventValue.put(KEY_ID, event.getId());
         newEventValue.put(KEY_DAY_ID, event.getDayid());
-        newEventValue.put(KEY_IMAGEATTACHMENT_ID, event.getImageattachmentid());
-        newEventValue.put(KEY_PHONECONTACTS_ID, event.getPhonecontactid());
         newEventValue.put(KEY_TITLE, event.getTitle());
         newEventValue.put(KEY_LOCATION_ID, event.getLocationid());
         newEventValue.put(KEY_LOCATION_NAME, event.getLocationname());
@@ -719,21 +734,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         newEventValue.put(KEY_NOTIFY_TIME, event.getNotifytime());
 
         db.update(TABLE_EVENTS, newEventValue, String.format("%s = ?", KEY_ID), new String[]{Integer.toString(event.getId())});
-
-        int count;
-        String sql = "SELECT COUNT(*) FROM " + TABLE_DATES;
-        Cursor cursor = db.rawQuery(sql, null);
-        cursor.moveToFirst();
-        count = cursor.getInt(0);
-
-        sql = "SELECT COUNT(*) FROM " + TABLE_EVENTS;
-        cursor = db.rawQuery(sql, null);
-        cursor.moveToFirst();
-        count = cursor.getInt(0);
-
-        cursor.close();
-        db.close();
     }
+
+    public int getLatestEventId(){
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT " + KEY_ID + " FROM " + TABLE_EVENTS + " ORDER BY " + KEY_ID + " DESC limit 1 ";
+        Cursor reportCursor = db.rawQuery(sql, null);
+        int id;
+        if (reportCursor.moveToFirst()) {
+            id = reportCursor.getInt(reportCursor.
+                    getColumnIndex(KEY_ID));
+            id++;
+        } else {
+            id = 0;
+        }
+        reportCursor.close();
+        return id;
+    }
+
 
     public List<Event> getEvent(Event event) {
         List<Event> Events = new ArrayList<Event>();
@@ -750,8 +768,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Event temp = new Event(
                         reportCursor.getInt(reportCursor.getColumnIndex(KEY_ID)),
                         reportCursor.getInt(reportCursor.getColumnIndex(KEY_DAY_ID)),
-                        reportCursor.getString(reportCursor.getColumnIndex(KEY_IMAGEATTACHMENT_ID)),
-                        reportCursor.getString(reportCursor.getColumnIndex(KEY_PHONECONTACTS_ID)),
                         reportCursor.getString(reportCursor.getColumnIndex(KEY_TITLE)),
                         reportCursor.getString(reportCursor.getColumnIndex(KEY_LOCATION_ID)),
                         reportCursor.getString(reportCursor.getColumnIndex(KEY_LOCATION_NAME)),
@@ -761,13 +777,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         reportCursor.getString(reportCursor.getColumnIndex(KEY_DESCRIPTION)),
                         reportCursor.getInt(reportCursor.getColumnIndex(KEY_NOTIFY_TIME))
                 );
-
-                // adding to todo list
                 Events.add(temp);
             } while (reportCursor.moveToNext());
 
         }
-        db.close();
         reportCursor.close();
         return Events;
     }
@@ -793,7 +806,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.insert(TABLE_MISCELLANEOUS, null, newColor);
         }
         cursor.close();
-        db.close();
     }
 
     public void modifyColor(int r, int g, int b, String key) {
@@ -809,7 +821,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.update(TABLE_MISCELLANEOUS, newEventColor, String.format("%s = ?", key), new String[]{prevColor});
         }
         cursor.close();
-        db.close();
     }
 
     public String getColor(String key) {
@@ -820,10 +831,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             String color = cursor.getString(cursor.getColumnIndex(key));
             cursor.close();
-            db.close();
             return color;
         }
-        db.close();
         cursor.close();
         return null;
     }
