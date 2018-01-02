@@ -7,6 +7,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
@@ -254,7 +256,6 @@ public class NotifyService extends IntentService {
      * @param eventID
      */
     private void processStartNotification(String eventID) {
-        // Do something. For example, fetch fresh data from backend to create a rich notification?
         Event newEvent = db.getEvent(Integer.parseInt(eventID));
         if (newEvent != null) {
             NotificationCompat.Builder mBuilder =
@@ -262,14 +263,18 @@ public class NotifyService extends IntentService {
 
             //Create the intent that’ll fire when the user taps the notification//
             Intent intent = new Intent(this, EventDetail.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("EventID", Integer.parseInt(eventID));
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
             mBuilder.setContentIntent(pendingIntent);
 
             mBuilder.setSmallIcon(R.drawable.calendarnotifyicon);
             mBuilder.setContentTitle(newEvent.getTitle());
             mBuilder.setContentText(newEvent.getStarttime() + " - " + newEvent.getEndtime() + "\n" + newEvent.getLocationaddress());
+
+            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            mBuilder.setSound(soundUri);
 
             mBuilder.setAutoCancel(true);
 
