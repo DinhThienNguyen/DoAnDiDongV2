@@ -14,12 +14,17 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CalendarView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
@@ -71,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer);
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigation);
         navigationView.setNavigationItemSelectedListener(this);
+
 
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
         mDrawerLayout.addDrawerListener(mToggle);
@@ -146,15 +152,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.yearViewDisplay:
+                showYearViewDialog();
+                break;
+        }
         if (mToggle.onOptionsItemSelected(item)) {
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.year_view_overflow_menu, menu);
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -293,4 +309,163 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         actionBar.setBackgroundDrawable(cd);
     }
 
+    private void showYearViewDialog(){
+        final AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Choose one")
+                .show();
+        dialog.setContentView(R.layout.custom_year_view_dialog);
+
+        dialog.findViewById(R.id.janButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(0, year);
+            }
+        });
+
+        dialog.findViewById(R.id.febButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(1, year);
+            }
+        });
+
+        dialog.findViewById(R.id.marButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(2, year);
+            }
+        });
+
+        dialog.findViewById(R.id.aprButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(3, year);
+            }
+        });
+
+        dialog.findViewById(R.id.mayButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(4, year);
+            }
+        });
+
+        dialog.findViewById(R.id.junButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(5, year);
+            }
+        });
+
+        dialog.findViewById(R.id.julButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(6, year);
+            }
+        });
+
+        dialog.findViewById(R.id.augButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(7, year);
+            }
+        });
+
+        dialog.findViewById(R.id.sepButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(8, year);
+            }
+        });
+
+        dialog.findViewById(R.id.octButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(9, year);
+            }
+        });
+
+        dialog.findViewById(R.id.novButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(10, year);
+            }
+        });
+
+        dialog.findViewById(R.id.decButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                gotoDate(11, year);
+            }
+        });
+
+        dialog.findViewById(R.id.prevYearButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                year--;
+                yearTextView.setText(Integer.toString(year));
+            }
+        });
+
+        dialog.findViewById(R.id.nextYearButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView yearTextView = dialog.findViewById(R.id.yearTextView);
+                int year = Integer.parseInt(yearTextView.getText().toString());
+                year++;
+                yearTextView.setText(Integer.toString(year));
+            }
+        });
+    }
+
+
+    public void gotoDate(int month, int year) {
+
+        // Set any date to navigate to particular date
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_WEEK, 1);
+        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.YEAR, year);
+        Date date = cal.getTime();
+        compactCalendarView.setCurrentDate(date);
+        actionBar.setTitle(dateFormatForMonth.format(date));
+    }
 }

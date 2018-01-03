@@ -13,6 +13,8 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,7 +32,10 @@ import com.google.android.gms.tasks.Task;
 
 import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DateDetailActivity extends AppCompatActivity {
 
@@ -79,7 +84,7 @@ public class DateDetailActivity extends AppCompatActivity {
         String actualDate = tempDate[2] + "-" + tempDate[1] + "-" + tempDate[0];
         dayID = db.getDayId(actualDate);
         if (dayID != -1) {
-            loadDayEvent(dayID);
+            loadDayEvent(dayID, false);
         }
     }
 
@@ -91,14 +96,101 @@ public class DateDetailActivity extends AppCompatActivity {
             return;
         }
         if (dayID != -1)
-            loadDayEvent(dayID);
+            loadDayEvent(dayID, false);
     }
 
-    private void loadDayEvent(int dayId) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.sort_date_detail_overflow_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.sort_by_start_time_asc:
+                sortByStartTimeAsc();
+                break;
+
+            case R.id.sort_by_start_time_desc:
+                sortByStartTimeDesc();
+                break;
+
+            case R.id.sort_by_create_time_asc:
+                sortByCreateTimeAsc();
+                break;
+
+            case R.id.sort_by_create_time_desc:
+                sortByCreateTimeDesc();
+                break;
+        }
+        return true;
+    }
+
+    private void sortByStartTimeAsc() {
+        for (int i = 0; i < dateEvents.size(); i++) {
+            Date date1 = parseDate(dateEvents.get(i).getStarttime());
+            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+                Date date2 = parseDate(dateEvents.get(i1).getStarttime());
+                if (date2.before(date1)) {
+                    switchEventPlace(i, i1);
+                }
+            }
+        }
+        loadDayEvent(dayID, true);
+    }
+
+    private void sortByStartTimeDesc() {
+        for (int i = 0; i < dateEvents.size(); i++) {
+            Date date1 = parseDate(dateEvents.get(i).getStarttime());
+            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+                Date date2 = parseDate(dateEvents.get(i1).getStarttime());
+                if (date2.after(date1)) {
+                    switchEventPlace(i1, i);
+                }
+            }
+        }
+        loadDayEvent(dayID, true);
+    }
+
+    private void sortByCreateTimeAsc() {
+        for (int i = 0; i < dateEvents.size(); i++) {
+            int id1 = dateEvents.get(i).getId();
+            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+                int id2 = dateEvents.get(i1).getId();
+                if (id2 < id1) {
+                    switchEventPlace(i, i1);
+                }
+            }
+        }
+        loadDayEvent(dayID, true);
+    }
+
+    private void sortByCreateTimeDesc() {
+        for (int i = 0; i < dateEvents.size(); i++) {
+            int id1 = dateEvents.get(i).getId();
+            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+                int id2 = dateEvents.get(i1).getId();
+                if (id2 > id1) {
+                    switchEventPlace(i, i1);
+                }
+            }
+        }
+        loadDayEvent(dayID, true);
+    }
+
+    private void switchEventPlace(int a, int b) {
+        Event eventA = dateEvents.get(a);
+        dateEvents.set(a, dateEvents.get(b));
+        dateEvents.set(b, eventA);
+    }
+
+    private void loadDayEvent(int dayId, boolean afterSort) {
         dateEventLinearLayout.removeAllViews();
         Event event = new Event();
         event.setDayid(dayId);
-        dateEvents = db.getEvent(event);
+        if (!afterSort)
+            dateEvents = db.getEvent(event);
 
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -142,6 +234,21 @@ public class DateDetailActivity extends AppCompatActivity {
                 }
             });
             dateEventLinearLayout.addView(row, layoutParams);
+        }
+    }
+
+    /***
+     * Hàm này có nhiệm vụ chuyển 1 chuỗi ký tự thời gian dạng "Giờ : Phút" sáng
+     * 1 đối tượng Date
+     * @param date
+     * @return
+     */
+    private Date parseDate(String date) {
+        SimpleDateFormat inputParser = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        try {
+            return inputParser.parse(date);
+        } catch (java.text.ParseException e) {
+            return new Date(0);
         }
     }
 }

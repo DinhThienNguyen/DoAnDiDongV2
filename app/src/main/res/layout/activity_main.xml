@@ -40,9 +40,6 @@
             app:srcCompat="@drawable/adddateeventbutton"/>
 
 
-
-
-
     </android.support.design.widget.CoordinatorLayout>
 
     <android.support.design.widget.NavigationView

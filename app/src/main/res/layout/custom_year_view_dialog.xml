@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/monthViewLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="50dp"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:id="@+id/chooseYearLayout"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/prevYearButton"
+                android:textSize="30sp"
+                android:drawableStart="@drawable/prevyearbutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/yearTextView"
+                android:textSize="35sp"
+                android:background="@color/materialcolorpicker__grey"
+                android:textColor="@color/black"
+                android:text="2017"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <Button
+                android:id="@+id/nextYearButton"
+                android:textSize="30sp"
+                android:drawableEnd="@drawable/nextyearbutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/JanToAprButtonsLayout"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/janButton"
+                android:text="1"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/febButton"
+                android:text="2"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/marButton"
+                android:text="3"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/aprButton"
+                android:text="4"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/MayToAugButtonsLayout"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/mayButton"
+                android:text="5"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/junButton"
+                android:text="6"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/julButton"
+                android:text="7"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/augButton"
+                android:text="8"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/SepToDecButtonsLayout"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/sepButton"
+                android:text="9"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/octButton"
+                android:text="10"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/novButton"
+                android:text="11"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+            <Button
+                android:id="@+id/decButton"
+                android:text="12"
+                android:textSize="30sp"
+                android:layout_width="90dp"
+                android:layout_height="75dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

@@ -20,6 +20,11 @@
     <string name="current_day_calendar_color">Ngày hiện tại</string>
     <string name="selected_day_calendar_color">Ngày đang chọn</string>
     <string name="main_calendar_color">Màu nền lịch</string>
+    <string name="year_view_option">Xem theo năm</string>
+    <string name="sort_by_start_time_asc">Sắp theo thời gian bắt đầu tăng dần</string>
+    <string name="sort_by_start_time_desc">Sắp theo thời gian bắt đầu giảm dần</string>
+    <string name="sort_by_create_time_asc">Sắp theo thời điểm tạo tăng dần</string>
+    <string name="sort_by_create_time_desc">Sắp theo thời điểm tạo giảm dần</string>
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
     <string-array name="event_items">

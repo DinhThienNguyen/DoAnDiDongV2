@@ -92,7 +92,6 @@ public class AddDateEventActivity extends AppCompatActivity {
     private final int REQUEST_PERMISSION_READ_EXTERNAL = 6;
     private final int REQUEST_PERMISSION_READ_EXTERNAL_AFTER_CAMERA = 7;
     private final int REQUEST_PERMISSION_CAMERA = 8;
-    private final int REQUEST_PERMISSION_LOCATION = 9;
     private final int REQUEST_PERMISSION_WRITE_EXTERNAL = 10;
     private final int REQUEST_PERMISSION_NETWORK_STATE = 11;
 
@@ -105,8 +104,6 @@ public class AddDateEventActivity extends AppCompatActivity {
     private Uri uriContact;
     private Uri selectedImage;
     private String contactID;     // contacts unique ID
-    private String imageAttachmentIds;
-    private String phoneContactIds;
     private File photoFile;
     private String locationId;
     private Bitmap locationImage;
@@ -121,9 +118,6 @@ public class AddDateEventActivity extends AppCompatActivity {
 
     //this counts how many event attachments there are in this activity
     private int eventAttachmentCount;
-
-    //this counts how many views there are in this activity
-    private int totalViewCount = 12;
 
     //this counts how many Gallery's are on the UI
     private int spinnerCount = 1;
@@ -442,8 +436,6 @@ public class AddDateEventActivity extends AppCompatActivity {
                 eventAttachmentSpinner.setSelection(0);
             }
         });
-        imageAttachmentIds = "";
-        phoneContactIds = "";
 
         Intent incomingInfo = getIntent();
         final String date = incomingInfo.getStringExtra("Date");
@@ -459,16 +451,54 @@ public class AddDateEventActivity extends AppCompatActivity {
                 mMonth = c.get(Calendar.MONTH) + 1;
                 mDay = c.get(Calendar.DAY_OF_MONTH);
                 dateButton.setVisibility(View.VISIBLE);
-                dateButton.setText(mDay + "/" + mMonth + "/" + mYear);
+                if (mDay < 10) {
+                    if (mMonth < 10) {
+                        dateButton.setText("0" + mDay + "/0" + mMonth + "/" + mYear);
+                    } else {
+                        dateButton.setText("0" + mDay + "/" + mMonth + "/" + mYear);
+                    }
+                } else {
+                    if (mMonth < 10) {
+                        dateButton.setText(mDay + "/0" + mMonth + "/" + mYear);
+                    } else {
+                        dateButton.setText(mDay + "/" + mMonth + "/" + mYear);
+                    }
+                }
             } else {
                 dateButton.setText(date);
             }
             mHour = c.get(Calendar.HOUR_OF_DAY);
             mMinute = c.get(Calendar.MINUTE);
-            eventStartTimeButton.setText(mHour + ":" + mMinute);
-            mMinute += 30;
-            convertMinuteToHour();
-            eventEndTimeButton.setText(mHour + ":" + mMinute);
+            if (mHour < 10) {
+                if (mMinute < 10) {
+                    eventStartTimeButton.setText("0" + mHour + ":0" + mMinute);
+                } else {
+                    eventStartTimeButton.setText("0" + mHour + ":" + mMinute);
+                }
+            } else {
+                if (mMinute < 10) {
+                    eventStartTimeButton.setText(mHour + ":0" + mMinute);
+                } else {
+                    eventStartTimeButton.setText(mHour + ":" + mMinute);
+                }
+            }
+
+            c.add(Calendar.MINUTE, 30);
+            mHour = c.get(Calendar.HOUR_OF_DAY);
+            mMinute = c.get(Calendar.MINUTE);
+            if (mHour < 10) {
+                if (mMinute < 10) {
+                    eventEndTimeButton.setText("0" + mHour + ":0" + mMinute);
+                } else {
+                    eventEndTimeButton.setText("0" + mHour + ":" + mMinute);
+                }
+            } else {
+                if (mMinute < 10) {
+                    eventEndTimeButton.setText(mHour + ":0" + mMinute);
+                } else {
+                    eventEndTimeButton.setText(mHour + ":" + mMinute);
+                }
+            }
         } else if (actionFlag.equals("update")) {
             loadExistingEvent(incomingEventId);
         }
@@ -769,7 +799,6 @@ public class AddDateEventActivity extends AppCompatActivity {
 
                         eventAttachmentCount--;
                         Log.d("myTag", "eventAttachmentCount: " + eventAttachmentCount);
-                        totalViewCount--;
                     }
                 });
 
@@ -806,7 +835,6 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventAttachmentLinearLayout.addView(VLLayout);
 
         eventAttachmentCount++;
-        totalViewCount++;
         eventAttachmentSpinner.setSelection(0);
 
         Log.d("myTag", "Button " + button.getId() + "is created"
@@ -919,7 +947,6 @@ public class AddDateEventActivity extends AppCompatActivity {
                         eventAttachmentItemLLayoutArray.remove(deletedView - 1);
                         eventAttachmentItemLLayoutHArray.remove(deletedView - 1);
                         eventAttachmentCount--;
-                        totalViewCount--;
                     }
                 });
 
@@ -963,7 +990,6 @@ public class AddDateEventActivity extends AppCompatActivity {
         eventAttachmentLinearLayout.addView(VLLayout, layoutParams);
 
         eventAttachmentCount++;
-        totalViewCount++;
         eventAttachmentSpinner.setSelection(0);
     }
 
@@ -1098,9 +1124,33 @@ public class AddDateEventActivity extends AppCompatActivity {
                         mMinute = minute;
 
                         if (whichTime == 0)
-                            eventStartTimeButton.setText(mHour + ":" + mMinute);
+                            if (mHour < 10) {
+                                if (mMinute < 10) {
+                                    eventStartTimeButton.setText("0" + mHour + ":0" + mMinute);
+                                } else {
+                                    eventStartTimeButton.setText("0" + mHour + ":" + mMinute);
+                                }
+                            } else {
+                                if (mMinute < 10) {
+                                    eventStartTimeButton.setText(mHour + ":0" + mMinute);
+                                } else {
+                                    eventStartTimeButton.setText(mHour + ":" + mMinute);
+                                }
+                            }
                         if (whichTime == 1)
-                            eventEndTimeButton.setText(mHour + ":" + mMinute);
+                            if (mHour < 10) {
+                                if (mMinute < 10) {
+                                    eventEndTimeButton.setText("0" + mHour + ":0" + mMinute);
+                                } else {
+                                    eventEndTimeButton.setText("0" + mHour + ":" + mMinute);
+                                }
+                            } else {
+                                if (mMinute < 10) {
+                                    eventEndTimeButton.setText(mHour + ":0" + mMinute);
+                                } else {
+                                    eventEndTimeButton.setText(mHour + ":" + mMinute);
+                                }
+                            }
                     }
                 }, mHour, mMinute, false);
         timePickerDialog.show();
@@ -1132,13 +1182,6 @@ public class AddDateEventActivity extends AppCompatActivity {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    private void convertMinuteToHour() {
-        if (mMinute >= 60) {
-            mMinute -= 60;
-            mHour++;
-        }
-    }
-
     private boolean saveEvent() {
         Event newEvent = new Event();
         String date[] = dateButton.getText().toString().split("/");
@@ -1147,17 +1190,17 @@ public class AddDateEventActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(eventNameEditText.getText())) {
             newEvent.setTitle(eventNameEditText.getText().toString());
         }
-        for (int i = 0; i < eventAttachmentCount; i++) {
-            LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(i);
-            TextView nextTextView = (TextView) nextLayout.getChildAt(0);
-            if (nextTextView.getText().equals("Hình ảnh")) {
-                imageAttachmentIds += nextTextView.getId() + " ";
-            } else {
-                if (nextTextView.getText().equals("Số điện thoại")) {
-                    phoneContactIds += nextTextView.getId() + " ";
-                }
-            }
-        }
+//        for (int i = 0; i < eventAttachmentCount; i++) {
+//            LinearLayout nextLayout = eventAttachmentItemLLayoutHArray.get(i);
+//            TextView nextTextView = (TextView) nextLayout.getChildAt(0);
+//            if (nextTextView.getText().equals("Hình ảnh")) {
+//                imageAttachmentIds += nextTextView.getId() + " ";
+//            } else {
+//                if (nextTextView.getText().equals("Số điện thoại")) {
+//                    phoneContactIds += nextTextView.getId() + " ";
+//                }
+//            }
+//        }
         if (!TextUtils.isEmpty(locationId)) {
             newEvent.setLocationid(locationId);
             db.addLocationImage(locationId, locationImage);
