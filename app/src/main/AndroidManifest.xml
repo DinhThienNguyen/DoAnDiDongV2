@@ -78,6 +78,11 @@
             android:name=".EventDetail"
             android:label=""
             android:theme="@style/AppTheme.ActionBar.Transparent"/>
+
+        <activity
+            android:name=".WelcomeActivity"
+            android:label=""
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

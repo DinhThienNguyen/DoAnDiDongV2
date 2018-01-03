@@ -63,10 +63,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String selectedDayColor[];
     private String mainCalendarColor[];
     DatabaseHelper db;
+    private PrefManager prefManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Checking for first time launch - before calling setContentView()
+        prefManager = new PrefManager(this);
+        if (prefManager.isFirstTimeLaunch()) {
+            prefManager.setFirstTimeLaunch(false);
+            startActivity(new Intent(MainActivity.this, WelcomeActivity.class));
+            finish();
+        }
         setContentView(R.layout.activity_main);
 
         db = new DatabaseHelper(getApplicationContext());
@@ -458,7 +466,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     public void gotoDate(int month, int year) {
-
         // Set any date to navigate to particular date
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.DAY_OF_WEEK, 1);
@@ -467,5 +474,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Date date = cal.getTime();
         compactCalendarView.setCurrentDate(date);
         actionBar.setTitle(dateFormatForMonth.format(date));
+        loadEvent(31, Integer.toString(month + 1), year);
     }
 }

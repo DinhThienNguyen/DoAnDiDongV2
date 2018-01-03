@@ -36,4 +36,24 @@
     <string name="title_activity_date_detail">Sự kiện trong ngày</string>
     <string name="title_activity_add_date_event">Thêm sự kiện mới</string>
     <string name="title_activity_event_location_ggmap">Map</string>
+
+
+    <string name="title_activity_welcome">Home</string>
+    <string name="next">Tiếp tục</string>
+    <string name="skip">Bỏ qua</string>
+    <string name="start">Tiếp tục</string>
+
+    <string name="slide_1_title">Welcome!</string>
+    <string name="slide_1_desc">!</string>
+
+    <string name="slide_2_title">Tap vào số ngày để đặt thông báo</string>
+    <string name="slide_2_desc">!</string>
+
+    <string name="slide_3_title">Thông báo nhắc nhở</string>
+    <string name="slide_3_desc"></string>
+
+
+
+    <string name="play_again_desc">To see the welcome slider again, goto Settings -> apps -> welcome slider -> clear data</string>
+    <string name="play_again">Play Again</string>
 </resources>
