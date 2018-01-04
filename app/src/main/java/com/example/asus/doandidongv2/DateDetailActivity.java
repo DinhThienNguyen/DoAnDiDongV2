@@ -129,8 +129,8 @@ public class DateDetailActivity extends AppCompatActivity {
 
     private void sortByStartTimeAsc() {
         for (int i = 0; i < dateEvents.size(); i++) {
-            Date date1 = parseDate(dateEvents.get(i).getStarttime());
-            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+            for (int i1 = i+1; i1 < dateEvents.size(); i1++) {
+                Date date1 = parseDate(dateEvents.get(i).getStarttime());
                 Date date2 = parseDate(dateEvents.get(i1).getStarttime());
                 if (date2.before(date1)) {
                     switchEventPlace(i, i1);
@@ -142,8 +142,8 @@ public class DateDetailActivity extends AppCompatActivity {
 
     private void sortByStartTimeDesc() {
         for (int i = 0; i < dateEvents.size(); i++) {
-            Date date1 = parseDate(dateEvents.get(i).getStarttime());
-            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+            for (int i1 = i+1; i1 < dateEvents.size(); i1++) {
+                Date date1 = parseDate(dateEvents.get(i).getStarttime());
                 Date date2 = parseDate(dateEvents.get(i1).getStarttime());
                 if (date2.after(date1)) {
                     switchEventPlace(i1, i);
@@ -155,8 +155,8 @@ public class DateDetailActivity extends AppCompatActivity {
 
     private void sortByCreateTimeAsc() {
         for (int i = 0; i < dateEvents.size(); i++) {
-            int id1 = dateEvents.get(i).getId();
-            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+            for (int i1 = i+1; i1 < dateEvents.size(); i1++) {
+                int id1 = dateEvents.get(i).getId();
                 int id2 = dateEvents.get(i1).getId();
                 if (id2 < id1) {
                     switchEventPlace(i, i1);
@@ -168,8 +168,8 @@ public class DateDetailActivity extends AppCompatActivity {
 
     private void sortByCreateTimeDesc() {
         for (int i = 0; i < dateEvents.size(); i++) {
-            int id1 = dateEvents.get(i).getId();
-            for (int i1 = 1; i1 < dateEvents.size(); i1++) {
+            for (int i1 = i+1; i1 < dateEvents.size(); i1++) {
+                int id1 = dateEvents.get(i).getId();
                 int id2 = dateEvents.get(i1).getId();
                 if (id2 > id1) {
                     switchEventPlace(i, i1);
